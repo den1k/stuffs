@@ -71,7 +71,7 @@
           (if (= 200 status)
             (cb body)
             (js/console.error
-              "den1k.tawk/dispatch error:"
+              "stuffs.tawk/dispatch error:"
               (ex-info body resp))))))))
 
 (comment

@@ -4,11 +4,12 @@
             [nano-id.core :as nano-id]
             [clojure.walk :as walk]
             [clojure.pprint :refer [pprint]]
-            #?@(:clj [[clojure.java.io :as io]]
+            #?@(:clj  [[clojure.java.io :as io]]
                 :cljs [[goog.functions :as gfns]
                        [cljs.core :as cljs]]))
   #?(:cljs (:refer-clojure :exclude [keyword-identical?]))
-  #?(:clj (:import (java.util Date))))
+  #?(:clj (:import (java.util Date)))
+  #?(:cljs (:require-macros [stuffs.util])))
 
 
 (defn project
