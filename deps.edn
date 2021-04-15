@@ -6,6 +6,8 @@
          com.cognitect/transit-clj  {:mvn/version "1.0.324"}
          com.cognitect/transit-cljs {:mvn/version "0.8.264"}
 
+         mount/mount                {:mvn/version "0.1.16"}
+
          appliedscience/js-interop  {:mvn/version "0.2.5"}
          mhuebert/kitchen-async     {:mvn/version "0.1.0"}
 
