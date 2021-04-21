@@ -76,6 +76,9 @@
   #?(:clj  (Integer/parseInt s)
      :cljs (js/parseInt s)))
 
+(def infinity
+  #?(:clj  Double/POSITIVE_INFINITY
+     :cljs js/Infinity))
 
 (defn debounce [thunk interval]
   #?(:cljs (gfns/debounce thunk interval)
