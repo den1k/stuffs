@@ -190,7 +190,7 @@
   (nano-id/custom "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ" 10))
 
 (defn ensure-id [m]
-  (cond-> m (not (:id m)) (assoc m :id (id-gen))))
+  (cond-> m (not (:id m)) (assoc :id (id-gen))))
 
 (defn merge-meta
   "Like with-meta but does not override existing meta."
