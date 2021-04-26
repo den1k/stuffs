@@ -450,3 +450,11 @@
 (defn scroll-to-bottom [node]
   #?(:cljs
      (j/assoc! node :scrollTop (j/get node :scrollHeight))))
+
+(defn on-focus [cb]
+  #?(:cljs
+     (.addEventListener js/document
+                        "focus"
+                        cb
+                        ; capture
+                        true)))
