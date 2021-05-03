@@ -451,6 +451,9 @@
   #?(:cljs
      (j/assoc! node :scrollTop (j/get node :scrollHeight))))
 
+(defn scroll-into-view [node & [opts]]
+  #?(:cljs (some-> node (.scrollIntoView (some-> opts clj->js)))))
+
 (defn on-focus [cb]
   #?(:cljs
      (.addEventListener js/document
@@ -458,3 +461,21 @@
                         cb
                         ; capture
                         true)))
+
+(defn js-fetch [url opts]
+  #?(:cljs
+     (js/fetch url (clj->js opts))))
+
+;; DataTransfer
+
+(defn on-drop->form-data [drop-e]
+  #?(:cljs
+     (when-let [files (j/get-in drop-e [:dataTransfer :files])]
+       (let [form-data (js/FormData.)]
+         (run! #(.append form-data (str (gensym)) % (j/get % :name)) files)
+         form-data))))
+
+(defn drop->post-form-data [drop-e url]
+  #?(:cljs
+     (js-fetch url {:method "POST"
+                    :body   (on-drop->form-data drop-e)})))

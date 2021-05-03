@@ -6,8 +6,9 @@
             [clojure.pprint :refer [pprint]]
             #?@(:clj  [[clojure.java.io :as io]]
                 :cljs [[goog.functions :as gfns]
-                       [cljs.core :as cljs]]))
-  #?(:cljs (:refer-clojure :exclude [keyword-identical?]))
+                       [cljs.core :as cljs]
+                       [stuffs.impl.partial :as partial]]))
+  #?(:cljs (:refer-clojure :exclude [keyword-identical? partial]))
   #?(:clj (:import (java.util Date)))
   #?(:cljs (:require-macros [stuffs.util])))
 
@@ -245,3 +246,9 @@
      (if kvs
        (recur ret (first kvs) (second kvs) (nnext kvs))
        ret))))
+
+(defn partial
+  "Works just like clojure.core/partial, but the result can be compared with ="
+  [f & args]
+  #?(:cljs
+     (partial/make-partial-fn f args)))
