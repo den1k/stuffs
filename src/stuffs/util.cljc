@@ -235,3 +235,13 @@
            (doseq [file-in-dir (.listFiles file)]
              (delete-directory-recursive file-in-dir)))
          (io/delete-file file)))))
+
+(defn assoc-missing
+  ([m k v]
+   (cond-> m
+     (false? (contains? m k)) (assoc k v)))
+  ([m k v & kvs]
+   (let [ret (assoc-missing m k v)]
+     (if kvs
+       (recur ret (first kvs) (second kvs) (nnext kvs))
+       ret))))

@@ -20,8 +20,7 @@
   `(do
      (stop ~@state-syms)
      ~@body
-     (start ~@state-syms)
-     ))
+     (start ~@state-syms)))
 
 (comment
 
