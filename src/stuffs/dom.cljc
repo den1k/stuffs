@@ -1,8 +1,8 @@
 (ns stuffs.dom
   (:require [clojure.string :as str]
             [kitchen-async.promise :as p]
-            #?@(:cljs [[applied-science.js-interop :as j]
-                       [goog.object :as gobj]]
+            [stuffs.js-interop :as j]
+            #?@(:cljs [[goog.object :as gobj]]
                 :clj  [[net.cgrand.macrovich :as macros]])
             [net.cgrand.xforms :as x]
             [stuffs.util :as u])
@@ -453,6 +453,23 @@
 
 (defn scroll-into-view [node & [opts]]
   #?(:cljs (some-> node (.scrollIntoView (some-> opts clj->js)))))
+
+(defn resize-to-scoll-height [node]
+  (some-> node
+          (j/assoc-in! [:style :height] "auto")
+          (j/assoc-in! [:style :height]
+                       (j/get node :scrollHeight))))
+
+(defn resize-to-scoll-width [node]
+  (some-> node
+          (j/assoc-in! [:style :width] "auto")
+          (j/assoc-in! [:style :width]
+                       (j/get node :scrollWidth))))
+
+(defn resize-to-scroll-dims [node]
+  (doto node
+    resize-to-scoll-width
+    resize-to-scoll-height))
 
 (defn on-focus [cb]
   #?(:cljs
