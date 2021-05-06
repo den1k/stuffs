@@ -160,13 +160,10 @@
   (let [bits   (str/split keystring #"-(?!$)")
         button (nth bits (-> bits count dec))
         [code mods] (button->code button)]
-
     (when-not code
-
       (throw (ex-info (str "Unknown key '" button
                            "' in keystring '" keystring "'")
                       {:keystring keystring})))
-
     (->> (drop-last bits)
          (map #(or (get MODS %)
                    (throw (ex-info (str "Unknown modifier '" mod

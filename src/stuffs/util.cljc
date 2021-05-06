@@ -4,11 +4,12 @@
             [nano-id.core :as nano-id]
             [clojure.walk :as walk]
             [clojure.pprint :refer [pprint]]
-            #?@(:clj  [[clojure.java.io :as io]]
+            #?@(:clj  [[clojure.java.io :as io]
+                       [clojure.data.csv :as csv]]
                 :cljs [[goog.functions :as gfns]
                        [cljs.core :as cljs]
                        [stuffs.impl.partial :as partial]]))
-  #?(:cljs (:refer-clojure :exclude [keyword-identical? partial]))
+  (:refer-clojure :exclude [#?(:cljs keyword-identical?) partial])
   #?(:clj (:import (java.util Date)))
   #?(:cljs (:require-macros [stuffs.util])))
 
@@ -76,6 +77,10 @@
 (defn parse-int [s]
   #?(:clj  (Integer/parseInt s)
      :cljs (js/parseInt s)))
+
+(defn parse-float [s]
+  #?(:clj  (Float/parseFloat s)
+     :cljs (js/parseFloat s)))
 
 (def infinity
   #?(:clj  Double/POSITIVE_INFINITY
@@ -252,3 +257,24 @@
   [f & args]
   #?(:cljs
      (partial/make-partial-fn f args)))
+
+(defn read-csv [x & {:keys [header->kmap k->cast]}]
+  #?(:clj
+     (when-let [[headers & rows] (some-> x csv/read-csv)]
+       (let [headers (map #(let [h (str/replace % #"^\W*|\W*$" "")]
+                             (get header->kmap h h)) headers)
+             kcast   (if k->cast
+                       (fn-map->transform k->cast)
+                       identity)]
+         (into []
+               (comp
+                 (map #(zipmap headers %))
+                 (map kcast))
+               rows)))))
+
+(defn slurp-csv [x & {:as opts :keys [header->kmap k->cast]}]
+  #?(:clj
+     (some-> x slurp (read-csv opts))))
+
+(defn maybe-deref [x]
+  #?(:cljs (cond-> x (implements? IDeref x) deref)))

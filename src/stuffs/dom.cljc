@@ -471,6 +471,10 @@
     resize-to-scoll-width
     resize-to-scoll-height))
 
+(defn node-rendered? [node]
+  #?(:cljs
+     (j/call-in js/document [:body :contains] node)))
+
 (defn on-focus [cb]
   #?(:cljs
      (.addEventListener js/document
@@ -485,14 +489,31 @@
 
 ;; DataTransfer
 
-(defn on-drop->form-data [drop-e]
+(defn data-transfer-with-files? [dt]
+  (pos? (j/get-in dt [:files :length])))
+
+(defn data-transfer->form-data [dt]
   #?(:cljs
-     (when-let [files (j/get-in drop-e [:dataTransfer :files])]
+     (when-let [files (j/get dt :files)]
        (let [form-data (js/FormData.)]
          (run! #(.append form-data (str (gensym)) % (j/get % :name)) files)
          form-data))))
 
-(defn drop->post-form-data [drop-e url]
-  #?(:cljs
-     (js-fetch url {:method "POST"
-                    :body   (on-drop->form-data drop-e)})))
+(defn data-transfer-type+data [dt]
+  (cond
+    (data-transfer-with-files? dt) [:files (data-transfer->form-data dt)]
+    :else (when-let [t (j/call dt :getData "text")] [:text t])))
+
+(defonce listeners (atom {}))
+
+(defn add-listener
+  ([k type handler]
+   #?(:cljs
+      (add-listener k type js/document handler)))
+  ([k type node handler]
+   (swap! listeners update k
+          (fn [[cur-node cur-handler]]
+            (when (node-rendered? cur-node)
+              (j/call cur-node :removeEventListener cur-handler))
+            (j/call node :addEventListener type handler)
+            [node handler]))))
