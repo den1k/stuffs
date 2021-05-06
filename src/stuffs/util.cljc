@@ -4,6 +4,7 @@
             [nano-id.core :as nano-id]
             [clojure.walk :as walk]
             [clojure.pprint :refer [pprint]]
+            [hickory.core :as hic]
             #?@(:clj  [[clojure.java.io :as io]
                        [clojure.data.csv :as csv]]
                 :cljs [[goog.functions :as gfns]
@@ -13,6 +14,9 @@
   #?(:clj (:import (java.util Date)))
   #?(:cljs (:require-macros [stuffs.util])))
 
+(def EX
+  #?(:clj  Exception
+     :cljs js/Error))
 
 (defn project
   ([f coll] (project {} f coll))
@@ -70,7 +74,7 @@
     (str s)
     (str/join " " strs)))
 
-(defn read-clj [s]
+(defn read-edn [s]
   #?(:clj  (read-string s)
      :cljs (cljs.reader/read-string s)))
 
@@ -278,3 +282,9 @@
 
 (defn maybe-deref [x]
   #?(:cljs (cond-> x (implements? IDeref x) deref)))
+
+(defn html->hiccup [s]
+  (when-let [frags (some-> s hic/parse-fragment not-empty)]
+    (case (count frags)
+      1 (hic/as-hiccup (first frags))
+      (into [:div {}] (map hic/as-hiccup) frags))))

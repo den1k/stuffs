@@ -22,6 +22,7 @@
          backtick/backtick          {:mvn/version "0.3.4"}
 
          org.clojure/data.csv       {:mvn/version "1.0.0"}
+         hickory/hickory            {:mvn/version "0.7.1"}
          }
  :aliases
         {:test {:extra-paths ["test"]
