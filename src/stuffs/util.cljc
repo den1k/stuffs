@@ -14,10 +14,6 @@
   #?(:clj (:import (java.util Date)))
   #?(:cljs (:require-macros [stuffs.util])))
 
-(def EX
-  #?(:clj  Exception
-     :cljs js/Error))
-
 (defn project
   ([f coll] (project {} f coll))
   ([to f coll] (into to (map f) coll)))
