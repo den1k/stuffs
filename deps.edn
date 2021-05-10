@@ -4,18 +4,18 @@
          org.clojure/core.cache     {:mvn/version "1.0.207"}
 
          com.cognitect/transit-clj  {:mvn/version "1.0.324"}
-         com.cognitect/transit-cljs {:mvn/version "0.8.264"}
+         com.cognitect/transit-cljs {:mvn/version "0.8.269"}
 
          mount/mount                {:mvn/version "0.1.16"}
 
-         appliedscience/js-interop  {:mvn/version "0.2.5"}
+         appliedscience/js-interop  {:mvn/version "0.2.6-RENAMED"}
          mhuebert/kitchen-async     {:mvn/version "0.1.0"}
 
          lambdaisland/fetch         {:git/url "https://github.com/den1k/fetch"
                                      :sha     "25cbe2cfbe1a297989cad31f7194b8b0e6806f00"}
 
          nano-id/nano-id            {:mvn/version "1.0.0"}
-         buddy/buddy-core           {:mvn/version "1.9.0"}
+         buddy/buddy-core           {:mvn/version "1.10.1"}
          medley/medley              {:mvn/version "1.3.0"}
          com.rpl/specter            {:mvn/version "1.1.3"}
          net.cgrand/xforms          {:mvn/version "0.19.2"}
