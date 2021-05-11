@@ -16,6 +16,13 @@
               :ctrl
               :meta)})
 
+(defn mod-key? [e]
+  (boolean
+    (or (.-shiftKey e)
+        (.-ctrlKey e)
+        (.-altKey e)
+        (.-metaKey e))))
+
 (def KEYATTRS
   {:shift "shiftKey" :ctrl "ctrlKey" :alt "altKey" :meta "metaKey"
    :code  "keyCode"})
@@ -274,8 +281,10 @@
 
 #?(:clj
    (defmacro chord-case
-     "Like case for key-chords, takes e (JS key event)
+     "Like `case` for key-chords, takes e (JS key event)
      and clauses of chords to expressions that will test again e's chord.
+
+     Returns `false` when no chord matched.
 
      Use like:
 
@@ -288,6 +297,4 @@
                               (mapcat (fn [[chord expr]] [(parse-chord chord) expr])))]
        `(case (e->chord ~e)
           ~@parsed-chains
-          nil))))
-
-
+          false))))
