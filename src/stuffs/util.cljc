@@ -5,8 +5,10 @@
             [clojure.walk :as walk]
             [clojure.pprint :refer [pprint]]
             [hickory.core :as hic]
+            [taoensso.encore :as enc]
             #?@(:clj  [[clojure.java.io :as io]
-                       [clojure.data.csv :as csv]]
+                       [clojure.data.csv :as csv]
+                       [jsonista.core :as json]]
                 :cljs [[goog.functions :as gfns]
                        [cljs.core :as cljs]
                        [stuffs.impl.partial :as partial]]))
@@ -106,6 +108,8 @@
                #(swap! mem dissoc args)
                interval)
              ret))))))
+
+(def memoize-last enc/memoize-last)
 
 (defn keyword-identical? [k1 k2]
   (#?(:clj  identical?
@@ -275,6 +279,9 @@
 (defn slurp-csv [x & {:as opts :keys [header->kmap k->cast]}]
   #?(:clj
      (some-> x slurp (read-csv opts))))
+
+(def read-json #?(:clj json/read-value
+                  :cljs js/JSON.parse))
 
 (defn maybe-deref [x]
   #?(:cljs (cond-> x (implements? IDeref x) deref)))
