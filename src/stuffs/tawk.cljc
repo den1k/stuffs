@@ -4,7 +4,7 @@
     [cognitect.transit :as t]
     #?@(:cljs
         [[kitchen-async.promise :as p]
-         [applied-science.js-interop :as j]
+         [stuffs.js-interop :as j]
          [lambdaisland.fetch :as fetch]]))
   (:refer-clojure :exclude [get])
   #?(:clj (:import (java.io InputStream ByteArrayOutputStream)

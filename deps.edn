@@ -25,6 +25,9 @@
          org.clojure/data.csv       {:mvn/version "1.0.0"}
          metosin/jsonista           {:mvn/version "0.3.3"}
          hickory/hickory            {:mvn/version "0.7.1"}
+
+         edn-query-language/eql     {:mvn/version "2021.02.28"}
+
          }
  :aliases
         {:test {:extra-paths ["test"]
