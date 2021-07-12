@@ -11,7 +11,8 @@
                        [jsonista.core :as json]]
                 :cljs [[goog.functions :as gfns]
                        [cljs.core :as cljs]
-                       [stuffs.impl.partial :as partial]]))
+                       [stuffs.impl.partial :as partial]])
+            [medley.core :as md])
   (:refer-clojure :exclude [#?(:cljs keyword-identical?) partial])
   #?(:clj (:import (java.util Date)))
   #?(:cljs (:require-macros [stuffs.util])))
@@ -28,6 +29,9 @@
 
 (defn ffilter [pred coll]
   (some #(when (pred %) %) coll))
+
+(def update-existing md/update-existing)
+(def assoc-some md/assoc-some)
 
 (defn fn-map->transform
   ([fn-map]
@@ -111,6 +115,16 @@
 
 (def memoize-last enc/memoize-last)
 
+(defn dedupe-f [f]
+  "Like clojure.core/memoize but only caches the last invocation.
+  Effectively dedupes invocations with same args."
+  (let [cache (atom {})]
+    (fn [& args]
+      (or (get @cache args)
+          (let [ret (apply f args)]
+            (reset! cache {args ret})
+            ret)))))
+
 (defn keyword-identical? [k1 k2]
   (#?(:clj  identical?
       :cljs cljs/keyword-identical?)
@@ -139,9 +153,13 @@
   ([f g a b]
    (= (f a) (g b))))
 
-(defn date-instant []
-  #?(:clj  (Date.)
-     :cljs (js/Date.)))
+(defn date-instant
+  ([]
+   #?(:clj  (Date.)
+      :cljs (js/Date.)))
+  ([ts]
+   #?(:clj  (Date. ts)
+      :cljs (js/Date. ts))))
 
 (defn date-time []
   (.getTime (date-instant)))

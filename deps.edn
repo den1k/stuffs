@@ -14,8 +14,11 @@
          appliedscience/js-interop   {:mvn/version "0.2.6-RENAMED"}
          mhuebert/kitchen-async      {:mvn/version "0.1.0"}
 
+         http-kit/http-kit           {:mvn/version "2.5.3"}
          lambdaisland/fetch          {:git/url "https://github.com/den1k/fetch"
                                       :sha     "25cbe2cfbe1a297989cad31f7194b8b0e6806f00"}
+
+         jarohen/chime               {:mvn/version "0.3.3"}
 
          nano-id/nano-id             {:mvn/version "1.0.0"}
          buddy/buddy-core            {:mvn/version "1.10.1"}
