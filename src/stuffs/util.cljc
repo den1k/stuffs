@@ -273,6 +273,16 @@
              (delete-directory-recursive file-in-dir)))
          (io/delete-file file)))))
 
+(defn delete-files-recursive
+  "Recursively delete a all-files and directories inside a directory."
+  [file]
+  #?(:clj
+     (let [file (cond-> file (string? file) io/file)]
+       (when (.exists file)
+         (when (.isDirectory file)
+           (doseq [file-in-dir (.listFiles file)]
+             (delete-directory-recursive file-in-dir)))))))
+
 (defn assoc-missing
   ([m k v]
    (cond-> m

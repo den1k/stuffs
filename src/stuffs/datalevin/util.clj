@@ -17,18 +17,18 @@
   [{ref-attrs  :db.type/ref
     many-attrs :db.cardinality/many
     components :db/isComponent}]
-  {:ref-attrs       (set/difference ref-attrs many-attrs)
+  {:ref-attrs       (set (set/difference ref-attrs many-attrs))
    :ref-rattrs      (into #{} (map ddb/reverse-ref) components)
    :ref-many-rattrs (into #{} (map ddb/reverse-ref) (set/difference ref-attrs components))
    :ref-many-attrs  (set many-attrs)})
 
 (def ^:private attr-types
   (let [deduped-rschema->attr-types (su/dedupe-f rschema->attr-types)]
-    (fn attr-types [conn]
-      (deduped-rschema->attr-types (:rschema conn)))))
+    (fn attr-types [db]
+      (deduped-rschema->attr-types (:rschema db)))))
 
-(defn- map-refs [f ent-map]
-  (let [{:keys [ref-attrs ref-rattrs ref-many-rattrs ref-many-attrs]} attr-types]
+(defn- map-refs [f ent-map db]
+  (let [{:as at :keys [ref-attrs ref-rattrs ref-many-rattrs ref-many-attrs]} (attr-types db)]
     (letfn [(on-ent-map [x]
               (cond-> x (map? x) f))]
       (into {}
@@ -40,7 +40,7 @@
                       (mapv on-ent-map (su/ensure-vec v))
 
                       (or (ref-attrs k)
-                          (ref-rattrs))
+                          (ref-rattrs k))
                       (on-ent-map v)
 
                       :else v)]))
@@ -64,7 +64,7 @@
   (let [tempid (tempid-gen)
         inst   (su/date-instant)
         {:keys [created-at] db-id :db/id} (when id (d/entity @conn [:id id]))]
-    (-> (map-refs prep-entity-for-transact ent-map)
+    (-> (map-refs prep-entity-for-transact ent-map @conn)
         (assoc
           :db/id (or db-id tempid)
           :id (or id (su/id-gen))
