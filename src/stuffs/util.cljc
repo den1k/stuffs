@@ -317,7 +317,7 @@
   #?(:clj
      (some-> x slurp (read-csv opts))))
 
-(def read-json #?(:clj json/read-value
+(def read-json #?(:clj  json/read-value
                   :cljs js/JSON.parse))
 
 (defn maybe-deref [x]
@@ -328,3 +328,28 @@
     (case (count frags)
       1 (hic/as-hiccup (first frags))
       (into [:div {}] (map hic/as-hiccup) frags))))
+
+#?(:clj
+   (defn- clipboard []
+     (.getSystemClipboard (java.awt.Toolkit/getDefaultToolkit))))
+
+#?(:clj
+   (defn cb
+     "Clipboard util
+     (cb) returns current clipboard data
+     (cb 123) puts 123 into clipboard
+     (cb true 123) makes it pretty and puts it into clipboard"
+     ([]
+      (try
+        (.getTransferData (.getContents (clipboard) nil) (java.awt.datatransfer.DataFlavor/stringFlavor))
+        (catch java.lang.NullPointerException e nil)))
+     ([x] (cb true x))
+     ([pretty? x]
+      (let [text      (if (string? x)
+                        x
+                        (if pretty?
+                          (with-out-str (clojure.pprint/pprint x))
+                          (pr-str x)))
+            selection (java.awt.datatransfer.StringSelection. text)]
+        (.setContents (clipboard) selection selection))
+      x)))
