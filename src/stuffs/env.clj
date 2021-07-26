@@ -1,7 +1,8 @@
 (ns stuffs.env
   (:require [clojure.java.io :as io]
             [clojure.edn :as edn]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [stuffs.util :as su]))
 
 (defn- keywordize [s]
   (-> (str/lower-case s)
@@ -54,9 +55,14 @@
 (defn- read-env []
   (merge-env
     (read-env-file "env.edn")
-    ;(read-env-file (io/resource ".boot-env"))
     (read-system-env)
     (read-system-props)))
 
 (defonce ^{:doc "A map of environment variables."}
   env (read-env))
+
+(def dev-env (some-> env :env keyword))
+
+(def dev? (su/keyword-identical? dev-env :dev))
+
+(def prod? (su/keyword-identical? dev-env :prod))
