@@ -11,6 +11,8 @@
          com.cognitect/transit-cljs  {:mvn/version "0.8.269"}
 
          mount/mount                 {:mvn/version "0.1.16"}
+         den1k/spyscope              {:git/url "https://github.com/den1k/spyscope"
+                                      :sha     "c4a80168cf8b60f5aaed04a03d8ec51e1ccf47ce"}
 
          appliedscience/js-interop   {:mvn/version "0.2.6-RENAMED"}
          mhuebert/kitchen-async      {:mvn/version "0.1.0"}
