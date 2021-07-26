@@ -320,7 +320,17 @@
 (def read-json #?(:clj  json/read-value
                   :cljs js/JSON.parse))
 
-(defn read-json-keywordized [json] (read-json json json/keyword-keys-object-mapper))
+(defn read-json-keywordized [json]
+  #?(:clj
+     (read-json json json/keyword-keys-object-mapper)))
+
+(defn write-json-string [json]
+  #?(:clj
+     (json/write-value-as-string json json/keyword-keys-object-mapper)))
+
+(defn write-json-bytes [json]
+  #?(:clj
+     (json/write-value-as-bytes json json/keyword-keys-object-mapper)))
 
 (defn maybe-deref [x]
   #?(:cljs (cond-> x (implements? IDeref x) deref)))
