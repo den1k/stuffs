@@ -1,9 +1,10 @@
 {:paths ["src"]
  :deps  {org.clojure/clojure         {:mvn/version "1.10.3" :scope "provided"}
-         org.clojure/clojurescript   {:mvn/version "1.10.844" :scope "provided"}
+         org.clojure/clojurescript   {:mvn/version "1.10.879" :scope "provided"}
          org.clojure/tools.namespace {:mvn/version "1.1.0"}
          org.clojure/tools.cli       {:mvn/version "1.0.206"}
          org.clojure/core.cache      {:mvn/version "1.0.207"}
+         org.clojure/core.memoize    {:mvn/version "1.0.236"}
 
          datalevin/datalevin         {:mvn/version "0.4.40"}
 
@@ -38,7 +39,9 @@
          metosin/jsonista            {:mvn/version "0.3.3"}
          hickory/hickory             {:mvn/version "0.7.1"}
 
-         edn-query-language/eql      {:mvn/version "2021.02.28"}
+         edn-query-language/eql      {:mvn/version "2021.07.18"}
+
+         com.nextjournal/beholder    {:mvn/version "1.0.0"}
 
          }
  :aliases
@@ -47,6 +50,6 @@
                 :extra-deps {io.github.clojure/tools.build
                              {:git/url "https://github.com/clojure/tools.build"
                               ;tag "v0.1.2"
-                              :sha     "d696307e4bbe25e942d1ef418cb69aec995d0531"}}}
+                              :sha     "98c1e8eb3ae2c2477136084be5636b61f38738f7"}}}
          :test {:extra-paths ["test"]
                 :extra-deps  {org.clojure/test.check {:mvn/version "1.1.0"}}}}}

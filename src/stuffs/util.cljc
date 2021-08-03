@@ -8,7 +8,8 @@
             [taoensso.encore :as enc]
             #?@(:clj  [[clojure.java.io :as io]
                        [clojure.data.csv :as csv]
-                       [jsonista.core :as json]]
+                       [jsonista.core :as json]
+                       [clojure.core.memoize :as mem]]
                 :cljs [[goog.functions :as gfns]
                        [cljs.core :as cljs]
                        [stuffs.impl.partial :as partial]])
@@ -81,12 +82,14 @@
      :cljs (cljs.reader/read-string s)))
 
 (defn parse-int [s]
-  #?(:clj  (Integer/parseInt s)
-     :cljs (js/parseInt s)))
+  (when (string? s)
+    #?(:clj  (Integer/parseInt s)
+       :cljs (js/parseInt s))))
 
 (defn parse-float [s]
-  #?(:clj  (Float/parseFloat s)
-     :cljs (js/parseFloat s)))
+  (when (string? s)
+    #?(:clj  (Float/parseFloat s)
+       :cljs (js/parseFloat s))))
 
 (def infinity
   #?(:clj  Double/POSITIVE_INFINITY
@@ -101,7 +104,8 @@
      :clj  (assert false "Not implemented")))
 
 (defn memoize-ttl [f interval]
-  #?(:cljs
+  #?(:clj (mem/ttl f :ttl/threshold interval)
+     :cljs
      (let [mem (atom {})]
        (fn [& args]
          (if-let [v (get @mem args)]
@@ -114,6 +118,9 @@
              ret))))))
 
 (def memoize-last enc/memoize-last)
+
+(def minute-ms (* 1000 60))
+(def hour-ms (* 60 minute-ms))
 
 (defn dedupe-f [f]
   "Like clojure.core/memoize but only caches the last invocation.

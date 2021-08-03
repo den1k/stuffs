@@ -16,6 +16,11 @@
       (apply mount/stop states)
       :noop)))
 
+(defn restart [& syms]
+  (let [states (not-empty (keep resolve syms))]
+    (apply mount/stop states)
+    (apply mount/start states)))
+
 (defmacro with-restart [state-syms & body]
   `(do
      (stop ~@state-syms)
