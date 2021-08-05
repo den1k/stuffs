@@ -17,10 +17,12 @@
   [{ref-attrs  :db.type/ref
     many-attrs :db.cardinality/many
     components :db/isComponent}]
-  {:ref-attrs       (set (set/difference ref-attrs many-attrs))
-   :ref-rattrs      (into #{} (map ddb/reverse-ref) components)
-   :ref-many-rattrs (into #{} (map ddb/reverse-ref) (set/difference ref-attrs components))
-   :ref-many-attrs  (set many-attrs)})
+  (let [components  (set components)]
+   {:component-attrs components
+    :ref-attrs       (set (set/difference ref-attrs many-attrs))
+    :ref-rattrs      (into #{} (map ddb/reverse-ref) components)
+    :ref-many-rattrs (into #{} (map ddb/reverse-ref) (set/difference ref-attrs components))
+    :ref-many-attrs  (set many-attrs)}))
 
 (def ^:private attr-types
   (let [deduped-rschema->attr-types (su/dedupe-f rschema->attr-types)]
@@ -28,13 +30,16 @@
       (deduped-rschema->attr-types (:rschema db)))))
 
 (defn- map-refs [f ent-map db]
-  (let [{:as at :keys [ref-attrs ref-rattrs ref-many-rattrs ref-many-attrs]} (attr-types db)]
+  (let [{:as   at
+         :keys [component-attrs ref-attrs ref-rattrs ref-many-rattrs ref-many-attrs]} (attr-types db)]
     (letfn [(on-ent-map [x]
-              (cond-> x (map? x) f))]
+              (cond->> x (map? x) (f db)))]
       (into {}
             (map (fn [[k v :as entry]]
                    [k
                     (cond
+                      (component-attrs k) v
+
                       (or (ref-many-attrs k)
                           (ref-many-rattrs k))
                       (mapv on-ent-map (su/ensure-vec v))
@@ -60,11 +65,11 @@
     [(md/remove-vals nil? ent-map)]
     ent-map))
 
-(defn- prep-entity-for-transact [conn {:keys [id] :as ent-map}]
+(defn- prep-entity-for-transact [db {:keys [id] :as ent-map}]
   (let [tempid (tempid-gen)
         inst   (su/date-instant)
-        {:keys [created-at] db-id :db/id} (when id (d/entity @conn [:id id]))]
-    (-> (map-refs prep-entity-for-transact ent-map @conn)
+        {:keys [created-at] db-id :db/id} (when id (d/entity db [:id id]))]
+    (-> (map-refs prep-entity-for-transact ent-map db)
         (assoc
           :db/id (or db-id tempid)
           :id (or id (su/id-gen))
@@ -80,7 +85,7 @@
     ;; could use schema to figure out unique identity keys if there is no db/id
     ;; throw otherwise
     ([conn txs ent-map]
-     (let [{db-id :db/id :as prepped-ent} (prep-entity-for-transact conn ent-map)
+     (let [{db-id :db/id :as prepped-ent} (prep-entity-for-transact @conn ent-map)
            {:keys [db-after tempids]} (->> (or txs [])
                                            (into [prepped-ent])
                                            (d/transact! conn))
@@ -113,3 +118,15 @@
        ;; todo return transacted entities
        tx-report
        ))))
+
+(defn- existing-entity [db eid]
+  (when (and (ddb/entid db eid)
+             (not-empty (d/datoms db :eavt eid)))
+    (d/entity db eid)))
+
+(defn make-entity [conn]
+  (fn entity
+    [eid]
+    (let [ref (cond-> eid
+                (and (vector? eid) (su/keyword-identical? :db/id (first eid))) second)]
+      (some-> (existing-entity @conn ref) d/touch))))
