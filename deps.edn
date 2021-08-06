@@ -14,6 +14,8 @@
          mount/mount                 {:mvn/version "0.1.16"}
          den1k/spyscope              {:git/url "https://github.com/den1k/spyscope"
                                       :sha     "c4a80168cf8b60f5aaed04a03d8ec51e1ccf47ce"}
+         hyperfiddle/rcf             {:git/url "https://github.com/hyperfiddle/rcf.git"
+                                      :sha     "278e85015db315cae3b2301b3a197f7af2affe72"}
 
          appliedscience/js-interop   {:mvn/version "0.2.6-RENAMED"}
          mhuebert/kitchen-async      {:mvn/version "0.1.0"}
@@ -40,8 +42,6 @@
          hickory/hickory             {:mvn/version "0.7.1"}
 
          edn-query-language/eql      {:mvn/version "2021.07.18"}
-
-         com.nextjournal/beholder    {:mvn/version "1.0.0"}
 
          }
  :aliases
