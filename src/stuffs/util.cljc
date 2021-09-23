@@ -35,6 +35,9 @@
 (def assoc-some md/assoc-some)
 
 (defn fn-map->transform
+  "(fn-map->transform {:number inc}
+                   {:number 1})
+   => {:number 2}"
   ([fn-map]
    (fn [m]
      (reduce-kv
@@ -48,7 +51,11 @@
   ([fn-map m]
    ((fn-map->transform fn-map) m)))
 
-(defn nfurcate [k->pred coll]
+(defn nfurcate
+  "(nfurcate {:odd? odd?
+           :even? even?} (range 10))
+   => {:even? [0 2 4 6 8], :odd? [1 3 5 7 9]}"
+  [k->pred coll]
   (reduce
     (fn [out x]
       (let [any-match? (volatile! false)
@@ -106,16 +113,16 @@
 (defn memoize-ttl [f interval]
   #?(:clj (mem/ttl f :ttl/threshold interval)
      :cljs
-     (let [mem (atom {})]
-       (fn [& args]
-         (if-let [v (get @mem args)]
-           v
-           (let [ret (apply f args)]
-             (swap! mem assoc args ret)
-             (js/setTimeout
-               #(swap! mem dissoc args)
-               interval)
-             ret))))))
+          (let [mem (atom {})]
+            (fn [& args]
+              (if-let [v (get @mem args)]
+                v
+                (let [ret (apply f args)]
+                  (swap! mem assoc args ret)
+                  (js/setTimeout
+                    #(swap! mem dissoc args)
+                    interval)
+                  ret))))))
 
 (def memoize-last enc/memoize-last)
 
@@ -143,6 +150,14 @@
       (when-not @run?
         (apply f args)
         (reset! run? true)))))
+
+(defn partition-all-on [n-seq coll]
+  (loop [[n & nseq] n-seq out [] coll coll]
+    (let [[before after] (split-at n coll)
+          out' (conj out before)]
+      (if (and nseq (not-empty after))
+        (recur nseq out' after)
+        out'))))
 
 (def clj? #?(:clj true :cljs false))
 (def cljs? #?(:clj false :cljs true))
@@ -265,9 +280,14 @@
   (let [pts (Math/pow 10 points)]
     (float (/ (Math/round (* pts num)) pts))))
 
+(defn ceil [num]
+  (some-> num (Math/ceil) int))
 
 (defn pretty-string [x]
   (str/trim (with-out-str (pprint x))))
+
+(defn prexix-pprint [prefix x]
+  (println prefix (pretty-string x)))
 
 (defn delete-directory-recursive
   "Recursively delete a directory."

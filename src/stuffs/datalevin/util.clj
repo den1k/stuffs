@@ -3,7 +3,6 @@
             [datalevin.db :as ddb]
             [medley.core :as md]
             [stuffs.util :as su]
-            [stuffs.util :as u]
             [clojure.set :as set]))
 
 (def base-entity-schema
@@ -17,21 +16,21 @@
   [{ref-attrs  :db.type/ref
     many-attrs :db.cardinality/many
     components :db/isComponent}]
-  (let [components  (set components)]
-   {:component-attrs components
-    :ref-attrs       (set (set/difference ref-attrs many-attrs))
-    :ref-rattrs      (into #{} (map ddb/reverse-ref) components)
-    :ref-many-rattrs (into #{} (map ddb/reverse-ref) (set/difference ref-attrs components))
-    :ref-many-attrs  (set many-attrs)}))
+  (let [components (set components)]
+    {:component-attrs components
+     :ref-attrs       (set (set/difference ref-attrs many-attrs))
+     :ref-rattrs      (into #{} (map ddb/reverse-ref) components)
+     :ref-many-rattrs (into #{} (map ddb/reverse-ref) (set/difference ref-attrs components))
+     :ref-many-attrs  (set many-attrs)}))
 
-(def ^:private attr-types
+(def db->attr-types
   (let [deduped-rschema->attr-types (su/dedupe-f rschema->attr-types)]
     (fn attr-types [db]
       (deduped-rschema->attr-types (:rschema db)))))
 
 (defn- map-refs [f ent-map db]
   (let [{:as   at
-         :keys [component-attrs ref-attrs ref-rattrs ref-many-rattrs ref-many-attrs]} (attr-types db)]
+         :keys [component-attrs ref-attrs ref-rattrs ref-many-rattrs ref-many-attrs]} (db->attr-types db)]
     (letfn [(on-ent-map [x]
               (cond->> x (map? x) (f db)))]
       (into {}
@@ -130,3 +129,32 @@
     (let [ref (cond-> eid
                 (and (vector? eid) (su/keyword-identical? :db/id (first eid))) second)]
       (some-> (existing-entity @conn ref) d/touch))))
+
+(defn- query->map [q]
+  (cond
+    (map? q) q
+    (sequential? q) (datalevin.parser/query->map q)
+    :else (throw (ex-info
+                   "Query should be a vector or a map"
+                   {:error :parser/query, :form q}))))
+
+(defn q-entity [db query]
+  (let [query (-> (query->map query)
+                  (update :in #(if %
+                                 (into '[$ ?entfn] %)
+                                 '[$ ?entfn]))
+                  (assoc :find '[[?ent ...]])
+                  (update :where conj '[(?entfn $ ?e) ?ent]))]
+    (println query)
+    (d/q query db d/entity)))
+
+(defn make-q-entity [conn]
+  (fn [q]
+    (q-entity @conn q)))
+
+(defn where-entity [db where-clauses]
+  (q-entity db (into [:where] where-clauses)))
+
+(defn make-where-entity [conn]
+  (fn [where-clauses]
+    (where-entity @conn where-clauses)))
