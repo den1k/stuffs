@@ -7,7 +7,7 @@
          org.clojure/core.cache      {:mvn/version "1.0.207"}
          org.clojure/core.memoize    {:mvn/version "1.0.236"}
 
-         datalevin/datalevin         {:mvn/version "0.5.9"}
+         datalevin/datalevin         {:mvn/version "0.5.21"}
 
          com.cognitect/transit-clj   {:mvn/version "1.0.324"}
          com.cognitect/transit-cljs  {:mvn/version "0.8.269"}
