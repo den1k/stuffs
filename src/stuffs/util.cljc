@@ -284,7 +284,8 @@
   (some-> num (Math/ceil) int))
 
 (defn pretty-string [x]
-  (str/trim (with-out-str (pprint x))))
+  (when x
+    (str/trim (with-out-str (pprint x)))))
 
 (defn prexix-pprint [prefix x]
   (println prefix (pretty-string x)))
@@ -349,7 +350,8 @@
 
 (defn read-json-keywordized [json]
   #?(:clj
-     (read-json json json/keyword-keys-object-mapper)))
+     (when (not-empty json)
+      (read-json json json/keyword-keys-object-mapper))))
 
 (defn write-json-string [json]
   #?(:clj

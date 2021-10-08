@@ -145,7 +145,6 @@
                                  '[$ ?entfn]))
                   (assoc :find '[[?ent ...]])
                   (update :where conj '[(?entfn $ ?e) ?ent]))]
-    (println query)
     (d/q query db d/entity)))
 
 (defn make-q-entity [conn]
