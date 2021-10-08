@@ -350,7 +350,7 @@
 
 (defn read-json-keywordized [json]
   #?(:clj
-     (when (not-empty json)
+     (when json
       (read-json json json/keyword-keys-object-mapper))))
 
 (defn write-json-string [json]
