@@ -7,7 +7,7 @@
          org.clojure/core.cache      {:mvn/version "1.0.207"}
          org.clojure/core.memoize    {:mvn/version "1.0.236"}
 
-         datalevin/datalevin         {:mvn/version "0.5.21"}
+         datalevin/datalevin         {:mvn/version "0.5.25"}
 
          com.cognitect/transit-clj   {:mvn/version "1.0.324"}
          com.cognitect/transit-cljs  {:mvn/version "0.8.269"}
@@ -29,6 +29,7 @@
          jarohen/chime               {:mvn/version "0.3.3"}
 
          nano-id/nano-id             {:mvn/version "1.0.0"}
+         danlentz/clj-uuid           {:mvn/version "0.1.9"}
          buddy/buddy-core            {:mvn/version "1.10.1"}
          potemkin/potemkin           {:mvn/version "0.4.5"}
          medley/medley               {:mvn/version "1.3.0"}

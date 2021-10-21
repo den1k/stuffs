@@ -13,7 +13,8 @@
                 :cljs [[goog.functions :as gfns]
                        [cljs.core :as cljs]
                        [stuffs.impl.partial :as partial]])
-            [medley.core :as md])
+            [medley.core :as md]
+            [tick.alpha.api :as t])
   (:refer-clojure :exclude [#?(:cljs keyword-identical?) partial])
   #?(:clj (:import (java.util Date)))
   #?(:cljs (:require-macros [stuffs.util])))
@@ -91,6 +92,11 @@
 (defn parse-int [s]
   (when (string? s)
     #?(:clj  (Integer/parseInt s)
+       :cljs (js/parseInt s))))
+
+(defn parse-long [s]
+  (when (string? s)
+    #?(:clj  (Long/parseLong s)
        :cljs (js/parseInt s))))
 
 (defn parse-float [s]
@@ -189,6 +195,11 @@
 (defn date? [x]
   (instance? #?(:clj  Date
                 :cljs js/Date) x))
+
+(defn date-like? [x]
+  (or (date? x)
+      (t/instant? x)
+      (integer? x)))
 
 ;; *** DEV & DEBUG
 
@@ -351,7 +362,7 @@
 (defn read-json-keywordized [json]
   #?(:clj
      (when json
-      (read-json json json/keyword-keys-object-mapper))))
+       (read-json json json/keyword-keys-object-mapper))))
 
 (defn write-json-string [json]
   #?(:clj
