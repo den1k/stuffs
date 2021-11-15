@@ -80,6 +80,31 @@
     (sequential? x) (vec x)
     :else [x]))
 
+(defn rcomp
+  "Like comp but composes in reverse, so:
+  ((comp str inc) 2) => \"3\" becomes
+  ((rcomp inc str)) => \"3\""
+  {:static true}
+  ([] identity)
+  ([f] f)
+  ([f g]
+   (fn
+     ([] (g (f)))
+     ([x] (g (f x)))
+     ([x y] (g (f x y)))
+     ([x y z] (g (f x y z)))
+     ([x y z & args] (g (apply f x y z args)))))
+  ([f g & fs]
+   (reduce rcomp (conj fs g f))))
+
+(defmacro f->
+  "Wraps clojure.core/-> into an anonymous fn of one arg. Similar to comp, but
+   doesn't require forms to be functions."
+  [& body]
+  `(fn [arg#]
+     (-> arg#
+         ~@body)))
+
 (defn space-join [& [s & more :as strs]]
   (if (empty? more)
     (str s)
