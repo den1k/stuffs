@@ -15,7 +15,7 @@
                        [stuffs.impl.partial :as partial]])
             [medley.core :as md]
             [tick.core :as t])
-  (:refer-clojure :exclude [#?(:cljs keyword-identical?) partial])
+  (:refer-clojure :exclude [#?(:cljs keyword-identical?) parse-long partial])
   #?(:clj (:import (java.util Date)))
   #?(:cljs (:require-macros [stuffs.util])))
 
