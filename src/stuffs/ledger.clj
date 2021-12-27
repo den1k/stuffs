@@ -1,6 +1,6 @@
 (ns stuffs.ledger
   (:require [clj-uuid :as uuid]
-            [tick.alpha.api :as t]
+            [tick.core :as t]
             [mount.core :as mount :refer [defstate]]
             [datalevin.core :as d]
             [stuffs.util :as su]
@@ -135,7 +135,7 @@
 
 (defn open [path table]
   (let [l (d/open-kv path)]
-    (run! #(d/open-dbi l %) [table])
+    (d/open-dbi l table)
     l))
 
 (def close d/close-kv)

@@ -2,7 +2,7 @@
   (:require [stuffs.ledger :as l]
             [mount.core :as mount]
             [spyscope.core]
-            [tick.alpha.api :as t]
+            [tick.core :as t]
             [stuffs.util :as su]))
 
 (declare transact-event! transact-events! get-events-asc get-events-desc get-instant-events-asc get-instant-events-desc)

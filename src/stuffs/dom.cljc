@@ -454,6 +454,32 @@
 (defn scroll-into-view [node & [opts]]
   #?(:cljs (some-> node (.scrollIntoView (some-> opts clj->js)))))
 
+(defn visible-in-viewport? [el]
+  #?(:cljs
+     (let [{:keys [top bottom left right]} (bounding-rect el)
+           {:keys [innerHeight innerWidth]} (j/lookup js/window)]
+       (and (>= top 0)
+            (>= left 0)
+            (<= bottom innerHeight)
+            (<= right innerWidth)))))
+
+(defn visible-in-parent? [el]
+  #?(:cljs
+     (let [{ptop :top pbottom :bottom pleft :left pright :right}
+           (bounding-rect (j/get el :parentNode))
+           {:keys [top bottom left right]} (bounding-rect el)]
+       (and (visible-in-viewport? el)
+            (>= top ptop)
+            (<= bottom pbottom)
+            (>= left pleft)
+            (<= right pright)))))
+
+(defn scroll-into-view-if-needed [node & [opts]]
+  #?(:cljs
+     (when node
+       (when-not (visible-in-parent? node)
+         (.scrollIntoView node (some-> opts clj->js))))))
+
 (defn resize-to-scoll-height [node]
   (some-> node
           (j/assoc-in! [:style :height] "auto")

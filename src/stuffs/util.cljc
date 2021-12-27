@@ -14,7 +14,7 @@
                        [cljs.core :as cljs]
                        [stuffs.impl.partial :as partial]])
             [medley.core :as md]
-            [tick.alpha.api :as t])
+            [tick.core :as t])
   (:refer-clojure :exclude [#?(:cljs keyword-identical?) partial])
   #?(:clj (:import (java.util Date)))
   #?(:cljs (:require-macros [stuffs.util])))
