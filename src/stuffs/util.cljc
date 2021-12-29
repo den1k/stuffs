@@ -381,6 +381,24 @@
   #?(:clj
      (some-> x slurp (read-csv opts))))
 
+(defn write-csv-string [x & {:keys [k->headermap]}]
+  #?(:clj
+     (let [ks      (if k->headermap
+                     (keys k->headermap)
+                     (keys (first x)))
+           headers (-> (if k->headermap
+                         (vals k->headermap)
+                         (map name ks))
+                       not-empty
+                       vec)]
+       (with-out-str
+         *out*
+         (csv/write-csv
+           *out*
+           (into [headers]
+                 (map (fn [x] (map #(get x %) ks)))
+                 x))))))
+
 (def read-json #?(:clj  json/read-value
                   :cljs js/JSON.parse))
 
