@@ -18,7 +18,7 @@
          hyperfiddle/rcf             {:git/url "https://github.com/hyperfiddle/rcf.git"
                                       :sha     "af197a85749898e76262d488a245d23748c38edb"}
 
-         appliedscience/js-interop   {:mvn/version "0.2.6-RENAMED"}
+         applied-science/js-interop  {:mvn/version "0.3.1"}
          mhuebert/kitchen-async      {:mvn/version "0.1.0"}
 
          http-kit/http-kit           {:mvn/version "2.5.3"}
