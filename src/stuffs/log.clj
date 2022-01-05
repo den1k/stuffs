@@ -30,7 +30,7 @@
    (cond
      (and (number? a) (keyword? b))
      (let [offset (and
-                    (t/- (t/now) (t/new-duration a b)))]
+                    (t/<< (t/now) (t/new-duration a b)))]
        (get-instant-events-asc offset (t/now)))
 
      (and (su/date-like? a) (su/date-like? b))
@@ -38,4 +38,4 @@
      :else (throw (ex-info (str "invalid arguments: " a b) {:args [a b]}))))
   ([start num unit]
    {:pre [(su/date-like? start) (number? num) (keyword? unit)]}
-   (get-instant-events-asc (t/- start (t/new-duration num unit)) start)))
+   (get-instant-events-asc (t/<< start (t/new-duration num unit)) start)))
