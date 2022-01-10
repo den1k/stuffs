@@ -4,6 +4,7 @@
             [nano-id.core :as nano-id]
             [clojure.walk :as walk]
             [clojure.pprint :refer [pprint]]
+            [clojure.set :as set]
             [hickory.core :as hic]
             [taoensso.encore :as enc]
             #?@(:clj  [[clojure.java.io :as io]
@@ -28,6 +29,12 @@
    (project-as-keys {} key-fn coll))
   ([to key-fn coll]
    (project to (fn [x] [(key-fn x) x]) coll)))
+
+(defn prefix-keys [prefix m]
+  (project
+    (fn [[k v]]
+      [(keyword (str (name prefix) (name k))) v])
+    m))
 
 (defn ffilter [pred coll]
   (some #(when (pred %) %) coll))

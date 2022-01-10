@@ -30,9 +30,31 @@
   #?(:cljs
      (j/call-in js/navigator [:clipboard :readText])))
 
-(defn read-clipboard [on-content]
-  #?(:cljs
-     (p/then (read-clipboard-promise) on-content)))
+(defn read-clipboard
+  ([]
+   #?(:cljs
+      (read-clipboard-promise)))
+  ([on-content]
+   #?(:cljs
+      (p/then (read-clipboard-promise) on-content))))
+
+(defn location
+  ([]
+   #?(:cljs
+      (p/promise [resolve reject]
+        (location resolve))))
+  ([cb]
+   #?(:cljs
+      (when-let [gl (j/get js/navigator :geolocation)]
+        (j/call gl :getCurrentPosition
+                (fn [pos]
+                  (let [{:keys [accuracy altitude latitude longitude]}
+                        (j/lookup (j/get pos :coords))]
+                    (cb
+                      {:accuracy  accuracy
+                       :altitude  altitude
+                       :latitude  latitude
+                       :longitude longitude}))))))))
 
 (defn bounding-rect [node]
   #?(:cljs
@@ -508,6 +530,12 @@
                         cb
                         ; capture
                         true)))
+
+(defn on-copy [cb]
+  #?(:cljs
+     (.addEventListener js/document
+                        "copy"
+                        cb)))
 
 (defn js-fetch [url opts]
   #?(:cljs
