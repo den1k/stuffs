@@ -149,18 +149,17 @@
      :clj  (assert false "Not implemented")))
 
 (defn memoize-ttl [f interval]
-  #?(:clj (mem/ttl f :ttl/threshold interval)
-     :cljs
-          (let [mem (atom {})]
-            (fn [& args]
-              (if-let [v (get @mem args)]
-                v
-                (let [ret (apply f args)]
-                  (swap! mem assoc args ret)
-                  (js/setTimeout
-                    #(swap! mem dissoc args)
-                    interval)
-                  ret))))))
+  #?(:clj  (mem/ttl f :ttl/threshold interval)
+     :cljs (let [mem (atom {})]
+             (fn [& args]
+               (if-let [v (get @mem args)]
+                 v
+                 (let [ret (apply f args)]
+                   (swap! mem assoc args ret)
+                   (js/setTimeout
+                     #(swap! mem dissoc args)
+                     interval)
+                   ret))))))
 
 (def memoize-last enc/memoize-last)
 
