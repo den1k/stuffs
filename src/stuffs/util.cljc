@@ -220,8 +220,10 @@
    #?(:clj  (Date. ts)
       :cljs (js/Date. ts))))
 
-(defn date-time []
-  (.getTime (date-instant)))
+(defn date-time
+  ([]
+   (.getTime (date-instant)))
+  ([d] (.getTime d)))
 
 (defn date? [x]
   (instance? #?(:clj  Date

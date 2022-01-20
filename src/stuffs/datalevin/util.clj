@@ -18,6 +18,7 @@
 
 (def reverse-ref? ddb/reverse-ref?)
 (def reverse-ref ddb/reverse-ref)
+(def ref? ddb/ref?)
 
 (defn- rschema->attr-types
   [{ref-attrs  :db.type/ref
@@ -44,6 +45,16 @@
   (let [deduped-rschema->attr-types (su/dedupe-f rschema->attr-types)]
     (fn attr-types [db]
       (deduped-rschema->attr-types (rschema db)))))
+
+(def db-attrs->types
+  (let [f (su/dedupe-f
+            (fn [attr-types]
+              (into {}
+                    (mapcat (fn [[type attrs]]
+                              (map vector attrs (repeat type))))
+                    attr-types)))]
+    (fn attrs->type [db]
+      (f (db->attr-types db)))))
 
 (defn- map-refs [f ent-map db]
   (let [{:as   at

@@ -8,6 +8,18 @@
   (or (nil? x)
       (and (coll? x) (empty? x))))
 
+
+(defn current []
+  #?(:cljs
+     (let [url
+           (-> js/window .-location)
+           {:keys [data path-params query-params]}
+           (rf/match-by-path (:router @rfe/history) url)]
+       [(:name data) path-params query-params])))
+
+(defn current-n []
+  (some-> (current) first))
+
 (defn push-state
   ([k] (push-state k nil nil))
   ([k params] (push-state k params nil))
