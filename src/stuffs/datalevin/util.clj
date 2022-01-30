@@ -159,14 +159,29 @@
              (not-empty (d/datoms db :eavt eid)))
     (d/entity db eid)))
 
+(def datoms #(apply d/datoms @conn %&))
+
+(defn make-datoms [conn]
+  (fn datoms
+    ([]
+     (fn datoms-fn [& args]
+       (apply d/datoms @conn args)))
+    ([& args]
+     (apply d/datoms @conn args))))
+
 (defn make-entity [conn]
   (fn entity
-    [eid]
-    (let [ref (cond
-                (and (vector? eid) (su/keyword-identical? :db/id (first eid))) (second eid)
-                (de/entity? eid) (:db/id eid)
-                :else eid)]
-      (some-> (existing-entity @conn ref) d/touch))))
+    ([]
+     (fn entity-fn [eid]
+       (entity @conn eid)))
+    ([eid]
+     (entity @conn eid))
+    ([db eid]
+     (let [ref (cond
+                 (and (vector? eid) (su/keyword-identical? :db/id (first eid))) (second eid)
+                 (de/entity? eid) (:db/id eid)
+                 :else eid)]
+       (some-> (existing-entity db ref) d/touch)))))
 
 (defn query->map [q]
   (cond
