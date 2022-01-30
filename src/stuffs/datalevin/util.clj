@@ -159,8 +159,6 @@
              (not-empty (d/datoms db :eavt eid)))
     (d/entity db eid)))
 
-(def datoms #(apply d/datoms @conn %&))
-
 (defn make-datoms [conn]
   (fn datoms
     ([]
