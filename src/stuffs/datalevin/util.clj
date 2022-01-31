@@ -170,8 +170,9 @@
 (defn make-entity [conn]
   (fn entity
     ([]
-     (fn entity-fn [eid]
-       (entity @conn eid)))
+     (let [db @conn]
+       (fn entity-fn [eid]
+         (entity db eid))))
     ([eid]
      (entity @conn eid))
     ([db eid]
