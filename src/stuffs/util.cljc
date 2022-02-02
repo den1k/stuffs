@@ -171,10 +171,11 @@
   Effectively dedupes invocations with same args."
   (let [cache (atom {})]
     (fn [& args]
-      (or (get @cache args)
-          (let [ret (apply f args)]
-            (reset! cache {args ret})
-            ret)))))
+      (if-let [[_ v] (find @cache args)]
+        v
+        (let [ret (apply f args)]
+          (reset! cache {args ret})
+          ret)))))
 
 (defn keyword-identical? [k1 k2]
   (#?(:clj  identical?
