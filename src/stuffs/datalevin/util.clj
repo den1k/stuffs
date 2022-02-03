@@ -139,9 +139,10 @@
      ;; could use schema to figure out unique identity keys if there is no db/id
      ;; throw otherwise
      ([conn txs ent-maps]
-      (let [prepped-ents (mapcat
+      (let [db           @conn
+            prepped-ents (mapcat
                            (comp entity-retract-nils-txs
-                                 #(prep-entity-for-transact conn % opts))
+                                 #(prep-entity-for-transact db % opts))
                            ent-maps)
             {:as tx-report :keys [db-after tempids]} (->> (or txs [])
                                                           (into prepped-ents)
