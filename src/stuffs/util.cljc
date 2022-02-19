@@ -375,7 +375,7 @@
 (defn read-csv [x & {:keys [header->kmap k->cast]}]
   #?(:clj
      (when-let [[headers & rows] (some-> x csv/read-csv)]
-       (let [headers (map #(let [h (str/replace % #"^\W*|\W*$" "")]
+       (let [headers (map #(let [h (str/trim %)]
                              (get header->kmap h h)) headers)
              kcast   (if k->cast
                        (fn-map->transform k->cast)

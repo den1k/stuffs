@@ -1,5 +1,5 @@
 {:paths ["src"]
- :deps  {org.clojure/clojure         {:mvn/version "1.11.0-alpha4" :scope "provided"}
+ :deps  {org.clojure/clojure         {:mvn/version "1.11.0-beta1" :scope "provided"}
          org.clojure/clojurescript   {:mvn/version "1.11.4" :scope "provided"}
          org.clojure/core.async      {:mvn/version "1.5.648"}
          org.clojure/tools.namespace {:mvn/version "1.2.0"}
