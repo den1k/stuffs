@@ -30,11 +30,29 @@
   ([to key-fn coll]
    (project to (fn [x] [(key-fn x) x]) coll)))
 
+(defmacro namespace-str []
+  (or (some-> (:ns &env) :name str)                         ; cljs
+      `(str *ns*)))                                         ; clj
+
+(defn namespace-key
+  [nsp k]
+  (keyword (name nsp) (name k)))
+
+(defn un-ns-k [k]
+  (some-> k name keyword))
+
+(defn prefix-key [prefix k]
+  (keyword (str (name prefix) (name k))))
+
 (defn prefix-keys [prefix m]
   (project
     (fn [[k v]]
-      [(keyword (str (name prefix) (name k))) v])
+      [(prefix-key prefix k) v])
     m))
+
+(defn namespace-keys [prefix m]
+  (let [prefix (str prefix "/")]
+    (prefix-keys prefix m)))
 
 (defn ffilter [pred coll]
   (some #(when (pred %) %) coll))
@@ -457,3 +475,6 @@
             selection (java.awt.datatransfer.StringSelection. text)]
         (.setContents (clipboard) selection selection))
       x)))
+
+(defn simple-snake->camel-case [s]
+  (str/replace s #"_" "-"))

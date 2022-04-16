@@ -56,6 +56,26 @@
     (fn attrs->type [db]
       (f (db->attr-types db)))))
 
+(defn db->unique-idents [db]
+  (:db.unique/identity (rschema db)))
+
+(defn find-entity [db {:as ent-map :keys [db/id]}]
+  (if id
+    (d/entity db id)
+    (let [unique-idents (db->unique-idents db)]
+      (some #(d/entity db (find ent-map %)) unique-idents))))
+
+(defn find-entities [db ent-map]
+  (let [unique-idents (db->unique-idents db)]
+    (into [] (map #(d/entity db (find ent-map %))) unique-idents)))
+
+(defn find-entities-id->map [db ent-map]
+  (let [unique-idents (db->unique-idents db)]
+    (into {}
+          (comp (keep #(find ent-map %))
+                (keep (fn [ref] (d/entity db ref)))
+                (map (fn [e] [(:db/id e) e]))) unique-idents)))
+
 (defn- map-refs [f ent-map db]
   (let [{:as   at
          :keys [component-attrs ref-attrs ref-rattrs ref-many-rattrs ref-many-attrs]} (db->attr-types db)]
@@ -97,6 +117,12 @@
 
 (declare existing-entity)
 
+(defn add-timestamps [{:as m :keys [created-at]}]
+  (let [inst (su/date-instant)]
+    (cond-> m
+      (nil? created-at) (assoc :created-at inst)
+      true (assoc :updated-at inst))))
+
 (defn- prep-entity-for-transact [db {:as ent-map db-id :db/id} {:as opts :keys [idk]}]
   (let [id   (idk ent-map)
         inst (su/date-instant)
@@ -106,6 +132,15 @@
         (assoc
           :db/id (or db-id (tempid-gen))
           idk (or id exist-id (su/id-gen))
+          :created-at (or created-at inst)
+          :updated-at inst))))
+
+(defn- prep-entity-for-transact2 [db {:as ent-map db-id :db/id} {:as opts}]
+  (let [inst (su/date-instant)
+        {:keys [created-at] db-id :db/id} (find-entity db ent-map)]
+    (-> (map-refs (fn [db ent-map] (prep-entity-for-transact2 db ent-map opts)) ent-map db)
+        (assoc
+          :db/id (or db-id (tempid-gen))
           :created-at (or created-at inst)
           :updated-at inst))))
 
@@ -128,6 +163,49 @@
                   db-id)]
         (d/touch (d/entity db-after eid)))))))
 
+(defn make-transact-entity2!
+  "Transacts and returns an entity against an immutable DB value"
+  ([conn] (make-transact-entity2! conn {}))
+  ([conn {:as opts}]
+   (fn tx-ent!
+     ([ent-map] (tx-ent! conn [] ent-map))
+     ([txs ent-map] (tx-ent! conn txs ent-map))
+     ;; could use schema to figure out unique identity keys if there is no db/id
+     ;; throw otherwise
+     ([conn txs ent-map]
+      (let [{db-id :db/id :as prepped-ent}
+            (prep-entity-for-transact2 @conn ent-map opts)
+
+            txs (or txs [])
+
+            {:keys [db-after tempids]}
+            (try (->> txs
+                      (into [prepped-ent])
+                      (d/transact! conn))
+                 (catch Throwable e
+                   ;; merge on upsert error
+                   (println ::error e)
+                   (when (-> (ex-data e)
+                             :error
+                             (= :transact/upsert))
+                     (let [id->ents         (find-entities-id->map @conn ent-map)
+                           conflicting-ents (vals (dissoc id->ents db-id))
+                           conf-retractions (into []
+                                                  (map (fn [{:keys [db/id]}]
+                                                         [:db/retractEntity id]))
+                                                  conflicting-ents)
+                           merged-ent       (into prepped-ent
+                                                  cat
+                                                  conflicting-ents)]
+                       (d/transact! conn conf-retractions)
+                       (->> txs
+                            (into [merged-ent])
+                            (d/transact! conn))))))
+            eid (if (neg-int? db-id)
+                  (get tempids db-id)
+                  db-id)]
+        (d/touch (d/entity db-after eid)))))))
+
 (defn make-transact-entities!
   "Transacts entities against an immutable DB value
   Retracts attrs with `nil` values"
@@ -143,6 +221,33 @@
             prepped-ents (mapcat
                            (comp entity-retract-nils-txs
                                  #(prep-entity-for-transact db % opts))
+                           ent-maps)
+            {:as tx-report :keys [db-after tempids]} (->> (or txs [])
+                                                          (into prepped-ents)
+                                                          (d/transact! conn))
+            #_#_eid (if (neg-int? db-id)
+                      (get tempids db-id)
+                      db-id)]
+        #_(d/touch (d/entity db-after eid))
+        ;; todo return transacted entities
+        tx-report
+        )))))
+
+(defn make-transact-entities2!
+  "Transacts entities against an immutable DB value
+  Retracts attrs with `nil` values"
+  ([conn] (make-transact-entities2! conn {}))
+  ([conn opts]
+   (fn tx-ents!
+     ([ent-maps] (tx-ents! conn [] ent-maps))
+     ([txs ent-maps] (tx-ents! conn txs ent-maps))
+     ;; could use schema to figure out unique identity keys if there is no db/id
+     ;; throw otherwise
+     ([conn txs ent-maps]
+      (let [db           @conn
+            prepped-ents (mapcat
+                           (comp entity-retract-nils-txs
+                                 #(prep-entity-for-transact2 db % opts))
                            ent-maps)
             {:as tx-report :keys [db-after tempids]} (->> (or txs [])
                                                           (into prepped-ents)
@@ -180,6 +285,7 @@
      (let [ref (cond
                  (and (vector? eid) (su/keyword-identical? :db/id (first eid))) (second eid)
                  (de/entity? eid) (:db/id eid)
+                 (d/datom? eid) (:e eid)
                  :else eid)]
        (some-> (existing-entity db ref) d/touch)))))
 

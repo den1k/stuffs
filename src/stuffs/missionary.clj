@@ -9,7 +9,9 @@
   (deref [_]
     (m/? task)))
 
-(prefer-method print-method java.util.Map clojure.lang.IDeref)
+(defmethod print-method MissionaryTask [x w]
+  (print-method (symbol "#MissionaryTask") w)
+  (print-method (.task x) w))
 
 (defmacro blocking [& body]
   `(->MissionaryTask (m/via m/blk ~@body)))
