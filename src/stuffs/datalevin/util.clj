@@ -212,7 +212,8 @@
                    (when (-> (ex-data e)
                              :error
                              (= :transact/upsert))
-                     (let [conflicting-ents           (find-conflicting-entities @conn ent-map)
+                     (let [db                         @conn
+                           conflicting-ents           (find-conflicting-entities db ent-map)
                            conf-retractions           (into []
                                                             (map (fn [{:keys [db/id]}]
                                                                    [:db/retractEntity id]))
