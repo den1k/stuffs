@@ -5,7 +5,8 @@
             [medley.core :as md]
             [stuffs.util :as su]
             [clojure.set :as set]
-            [datalevin.storage :as s])
+            [datalevin.storage :as s]
+            [net.cgrand.xforms :as x])
   (:import (datalevin.storage Store)
            (datalevin.db DB)))
 
@@ -75,6 +76,29 @@
           (comp (keep #(find ent-map %))
                 (keep (fn [ref] (d/entity db ref)))
                 (map (fn [e] [(:db/id e) e]))) unique-idents)))
+
+(defn find-conflicting-entities [db ent-map]
+  (let [unique-idents (db->unique-idents db)]
+    (not-empty
+      (sequence
+        (comp (keep #(find ent-map %))
+              (keep (fn [ref] (d/entity db ref)))
+              (remove #(= (:db/id %) (:db/id ent-map))))
+        unique-idents))))
+
+(defn ents->rattr-refs [ents]
+  (let [{:keys [ref-rattrs
+                ref-many-rattrs]} (db->attr-types db)
+        all-rattrs (into ref-many-rattrs ref-rattrs)]
+    (sequence
+      (x/for [e _
+              a all-rattrs
+              :let [[a v :as ref] (find e a)]
+              :when ref]
+             [a (cond
+                  (contains? ref-rattrs a) (:db/id v)
+                  (contains? ref-many-rattrs a) (mapv :db/id v))])
+      ents)))
 
 (defn- map-refs [f ent-map db]
   (let [{:as   at
@@ -188,18 +212,19 @@
                    (when (-> (ex-data e)
                              :error
                              (= :transact/upsert))
-                     (let [id->ents         (find-entities-id->map @conn ent-map)
-                           conflicting-ents (vals (dissoc id->ents db-id))
-                           conf-retractions (into []
-                                                  (map (fn [{:keys [db/id]}]
-                                                         [:db/retractEntity id]))
-                                                  conflicting-ents)
-                           merged-ent       (into prepped-ent
-                                                  cat
-                                                  conflicting-ents)]
+                     (let [conflicting-ents           (find-conflicting-entities @conn ent-map)
+                           conf-retractions           (into []
+                                                            (map (fn [{:keys [db/id]}]
+                                                                   [:db/retractEntity id]))
+                                                            conflicting-ents)
+                           merged-ent                 (into prepped-ent
+                                                            cat
+                                                            conflicting-ents)
+                           merged-ent-with-rattr-refs (into merged-ent
+                                                            (ents->rattr-refs conflicting-ents))]
                        (d/transact! conn conf-retractions)
                        (->> txs
-                            (into [merged-ent])
+                            (into [merged-ent-with-rattr-refs])
                             (d/transact! conn))))))
             eid (if (neg-int? db-id)
                   (get tempids db-id)
