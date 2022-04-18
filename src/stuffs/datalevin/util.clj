@@ -86,7 +86,7 @@
               (remove #(= (:db/id %) (:db/id ent-map))))
         unique-idents))))
 
-(defn ents->rattr-refs [ents]
+(defn ents->rattr-refs [db ents]
   (let [{:keys [ref-rattrs
                 ref-many-rattrs]} (db->attr-types db)
         all-rattrs (into ref-many-rattrs ref-rattrs)]
@@ -221,7 +221,7 @@
                                                             cat
                                                             conflicting-ents)
                            merged-ent-with-rattr-refs (into merged-ent
-                                                            (ents->rattr-refs conflicting-ents))]
+                                                            (ents->rattr-refs db conflicting-ents))]
                        (d/transact! conn conf-retractions)
                        (->> txs
                             (into [merged-ent-with-rattr-refs])
