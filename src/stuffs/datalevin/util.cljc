@@ -1,15 +1,35 @@
-(ns stuffs.datalevin.util)
+(ns stuffs.datalevin.util
+  (:require [hyperfiddle.rcf :as rcf]))
+
+(def filter-unique-identity-xf
+  (filter (fn [[_ v]]
+            (= :db.unique/identity (:db/unique v)))))
 
 (defn schema->unique-identities [schema]
   (into {}
-        (filter (fn [[k v]]
-                  (= :db.unique/identity (:db/unique v))))
+        filter-unique-identity-xf
         schema))
 
-(defn schema->unique-identity-ks [schema]
+(rcf/tests
+  (schema->unique-identities
+    {:foo {:db/unique :db.unique/identity}
+     :bar {:what :ever}})
+  :=
+  {:foo {:db/unique :db.unique/identity}})
+
+(def filter-unique-attrs-xf
+  (comp filter-unique-identity-xf
+        (map (fn [[k _]] k))))
+
+(defn schema->unique-attrs [schema]
   (not-empty
-   (into #{}
-         (keep (fn [[k v]]
-                 (when (= :db.unique/identity (:db/unique v))
-                   k)))
-         schema)))
+    (into #{}
+          filter-unique-attrs-xf
+          schema)))
+
+(rcf/tests
+  (schema->unique-attrs
+    {:foo {:db/unique :db.unique/identity}
+     :bar {:what :ever}})
+  :=
+  #{:foo})
