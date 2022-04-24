@@ -345,6 +345,16 @@
              ~@body))))
 
 #?(:clj
+   (defmacro e-doto
+     "Event handler macro. Wraps clojure.core/->> into an fn that takes e and
+     threads it through exprs. Similar to comp, but doesn't require forms to be
+     functions."
+     [& body]
+     `(fn e-doto# [e#]
+        (doto e#
+          ~@body))))
+
+#?(:clj
    (defmacro e>
      "Event handler macro. Makes e (event) and target available in the body."
      ([& body]
@@ -554,9 +564,10 @@
          form-data))))
 
 (defn data-transfer-type+data [dt]
-  (cond
-    (data-transfer-with-files? dt) [:files (data-transfer->form-data dt)]
-    :else (when-let [t (j/call dt :getData "text")] [:text t])))
+  (when dt
+    (cond
+      (data-transfer-with-files? dt) [:files (data-transfer->form-data dt)]
+      :else (when-let [t (j/call dt :getData "text")] [:text t]))))
 
 (defonce listeners (atom {}))
 
