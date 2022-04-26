@@ -8,14 +8,20 @@
   (or (nil? x)
       (and (coll? x) (empty? x))))
 
-
-(defn current []
+(defn current-m []
   #?(:cljs
      (let [url
            (-> js/window .-location)
            {:keys [data path-params query-params]}
            (rf/match-by-path (:router @rfe/history) url)]
-       [(:name data) path-params query-params])))
+       {:name         (:name data)
+        :path-params  path-params
+        :query-params query-params})))
+
+(defn current []
+  #?(:cljs
+     (let [{:keys [name path-params query-params]} (current-m)]
+       [name path-params query-params])))
 
 (defn push-state
   ([k] (push-state k nil nil))

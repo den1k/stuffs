@@ -25,12 +25,12 @@
       {cljs.core/PersistentArrayMap
        (t/write-handler (constantly "array-map") (fn [x] (into [] cat x)))
        cljs.core/PersistentTreeMap
-       (t/write-handler (constantly "sorted-map") (fn [x] (into {} x)))}}))
+       (t/write-handler (constantly "sorted-map") (fn [x] (into [] cat x)))}}))
 
 (def default-decoding-opts
   #?(:cljs
      {:handlers
-      {"sorted-map" (t/read-handler (fn [x] (into (sorted-map) x)))
+      {"sorted-map" (t/read-handler (fn [x] (apply sorted-map x)))
        "array-map"  (t/read-handler (fn [x] (apply array-map x)))}}))
 
 #?(:cljs
@@ -92,6 +92,8 @@
         (read-transit)))
   (let [am (apply array-map (range 100))]
     (= (vec (roundtrip am)) (vec am)))
+
+  (roundtrip (sorted-map 1 2 3 4))
   )
 
 ;; CLJ
@@ -117,7 +119,7 @@
        (reify
          WriteHandler
          (tag [_ _] "sorted-map")
-         (rep [_ x] (into {} x)))}}))
+         (rep [_ x] (into [] cat x)))}}))
 
 #?(:clj
    (defn transit-encode
@@ -142,7 +144,7 @@
        "sorted-map"
        (reify
          ReadHandler
-         (fromRep [_ x] (into (sorted-map) x)))}}))
+         (fromRep [_ x] (apply sorted-map x)))}}))
 
 #?(:clj
    (defn parse-transit
