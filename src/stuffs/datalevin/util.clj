@@ -19,6 +19,7 @@
 
 (def reverse-ref? ddb/reverse-ref?)
 (def reverse-ref ddb/reverse-ref)
+(def mem-reverse-ref (memoize ddb/reverse-ref))
 (def ref? ddb/ref?)
 
 (defn- rschema->attr-types
