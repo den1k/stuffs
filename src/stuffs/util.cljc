@@ -7,6 +7,7 @@
             [clojure.set :as set]
             [hickory.core :as hic]
             [taoensso.encore :as enc]
+            [lambdaisland.regal :as regal]
             #?@(:clj  [[clojure.java.io :as io]
                        [clojure.data.csv :as csv]
                        [jsonista.core :as json]
@@ -478,3 +479,8 @@
 
 (defn simple-snake->camel-case [s]
   (str/replace s #"_" "-"))
+
+(def contains-white-space?
+  (let [r (regal/regex [:cat :whitespace])]
+    (fn [s]
+      (boolean (re-find r s)))))
