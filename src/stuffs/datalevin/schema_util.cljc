@@ -1,4 +1,4 @@
-(ns stuffs.datalevin.util
+(ns stuffs.datalevin.schema-util
   (:require [hyperfiddle.rcf :as rcf]))
 
 (def filter-unique-identity-xf
