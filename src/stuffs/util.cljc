@@ -484,3 +484,8 @@
   (let [r (regal/regex [:cat :whitespace])]
     (fn [s]
       (boolean (re-find r s)))))
+
+(defn strl
+  "same as (str/lower-case (str x))"
+  [x]
+  (-> x str str/lower-case))
