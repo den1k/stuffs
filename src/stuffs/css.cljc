@@ -14,6 +14,9 @@
          decl-map)
        " }"))
 
+(defn styles [styles]
+  (transduce (map style) str styles))
+
 (defn spread-style-xf [sel decl-k unit]
    (map-indexed (fn [i v]
                   (style [(str (name sel) i)
