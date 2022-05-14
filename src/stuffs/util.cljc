@@ -281,24 +281,33 @@
              not-empty
              (mapv #(cond-> % (not (vector? %)) vector)))))
 
+(defn doto-xf [f]
+  (map #(doto % f)))
+
 (defn tap-xf
   "Debug transducer. taps value
   (optionally with prefix)
    and returns it unchanged."
-  ([] (map #(doto % tap>)))
+  ([] (doto-xf tap>))
   ([prefix]
-   (map #(do (tap> [prefix %]) %))))
+   (doto-xf #(tap> [prefix %]))))
 
 (defn prn-xf
   "Debug transducer. Logs message and passes value through."
-  ([] (map #(doto % prn)))
+  ([] (doto-xf prn))
   ([prefix]
-   (prn-xf prefix {:prn-value? true}))
-  ([prefix {:keys [prn-value?]}]
-   (map #(do (if prn-value?
-               (prn prefix %)
-               (prn prefix))
-             %))))
+   (prn-xf prefix {}))
+  ([prefix {:keys [f prn-value? pred]
+            :or   {prn-value? true
+                   f          identity
+                   pred       (constantly true)}}]
+   (map
+     #(do
+        (when (pred %)
+          (if prn-value?
+            (prn prefix (f %))
+            (prn prefix)))
+        %))))
 
 (def id-gen
   (nano-id/custom "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ" 10))
