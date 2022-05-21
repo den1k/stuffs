@@ -96,9 +96,9 @@
               a all-rattrs
               :let [[a v :as ref] (find e a)]
               :when ref]
-             [a (cond
-                  (contains? ref-rattrs a) (:db/id v)
-                  (contains? ref-many-rattrs a) (mapv :db/id v))])
+        [a (cond
+             (contains? ref-rattrs a) (:db/id v)
+             (contains? ref-many-rattrs a) (mapv :db/id v))])
       ents)))
 
 (defn- map-refs [f ent-map db]
@@ -315,6 +315,24 @@
                  (d/datom? eid) (:e eid)
                  :else eid)]
        (some-> (existing-entity db ref) d/touch)))))
+
+(defn make-datoms->entities [conn]
+  (let [datoms (make-datoms conn)
+        entity (make-entity conn)]
+    (fn datoms->entities
+      ([index]
+       (datoms->entities index nil :e))
+      ([index attr]
+       (datoms->entities index attr :e))
+      ([index attr index-k]
+       {:pre [(contains? #{:e :v} index-k)]}
+       (sequence
+         (comp (map index-k)
+               (keep entity))
+         (if-not attr
+           (datoms index)
+           (datoms index attr)))))))
+
 
 (defn query->map [q]
   (cond

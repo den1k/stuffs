@@ -2,7 +2,9 @@
   (:require [clojure.java.io :as io]
             [clojure.edn :as edn]
             [clojure.string :as str]
-            [stuffs.util :as su]))
+            [stuffs.util :as su]
+            [clojure.core :as clj])
+  (:refer-clojure :exclude [get]))
 
 (defn- keywordize [s]
   (-> (str/lower-case s)
@@ -66,3 +68,7 @@
 (def dev? (su/keyword-identical? dev-env :dev))
 
 (def prod? (su/keyword-identical? dev-env :prod))
+
+;; macro to inline in CLJS
+(defmacro get [k]
+  (clj/get env k))
