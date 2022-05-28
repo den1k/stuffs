@@ -281,6 +281,8 @@
              not-empty
              (mapv #(cond-> % (not (vector? %)) vector)))))
 
+(def identity-xf (map identity))
+
 (defn doto-xf [f]
   (map #(doto % f)))
 
@@ -308,6 +310,19 @@
             (prn prefix (f %))
             (prn prefix)))
         %))))
+
+(defn pred-xf [pred f]
+  (fn [rf]
+    (fn
+      ([] (rf))
+      ([result] (rf result))
+      ([result input]
+       (rf result (cond-> input (pred input) f))))))
+
+(defn cond->xf [test xf]
+  (if test
+    xf
+    identity-xf))
 
 (def id-gen
   (nano-id/custom "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ" 10))
