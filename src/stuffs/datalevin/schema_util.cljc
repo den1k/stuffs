@@ -1,9 +1,11 @@
 (ns stuffs.datalevin.schema-util
   (:require [hyperfiddle.rcf :as rcf]))
 
+(defn unique-identity? [{:as schema-val :keys [db/unique]}]
+  (= unique :db.unique/identity))
+
 (def filter-unique-identity-xf
-  (filter (fn [[_ v]]
-            (= :db.unique/identity (:db/unique v)))))
+  (filter (comp unique-identity? val)))
 
 (defn schema->unique-identities [schema]
   (into {}

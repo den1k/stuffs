@@ -31,7 +31,7 @@
      :ref-attrs       (set (set/difference ref-attrs many-attrs))
      :ref-rattrs      (into #{} (map reverse-ref) components)
      :ref-many-rattrs (into #{} (map reverse-ref) (set/difference ref-attrs components))
-     :ref-many-attrs  (set many-attrs)}))
+     :ref-many-attrs  (set/intersection ref-attrs (set many-attrs))}))
 
 (defn schema
   "Return the schema"
@@ -191,7 +191,9 @@
 (defn make-transact-entity2!
   "Transacts and returns an entity against an immutable DB value"
   ([conn] (make-transact-entity2! conn {}))
-  ([conn {:as opts}]
+  ([conn {:as   opts
+          :keys [wrap-upsert-error]
+          :or   {wrap-upsert-error su/identity-thunk}}]
    (fn tx-ent!
      ([ent-map] (tx-ent! conn [] ent-map))
      ([txs ent-map] (tx-ent! conn txs ent-map))
@@ -213,21 +215,22 @@
                    (when (-> (ex-data e)
                              :error
                              (= :transact/upsert))
-                     (let [db                         @conn
-                           conflicting-ents           (find-conflicting-entities db ent-map)
-                           conf-retractions           (into []
-                                                            (map (fn [{:keys [db/id]}]
-                                                                   [:db/retractEntity id]))
-                                                            conflicting-ents)
-                           merged-ent                 (into prepped-ent
-                                                            cat
-                                                            conflicting-ents)
-                           merged-ent-with-rattr-refs (into merged-ent
-                                                            (ents->rattr-refs db conflicting-ents))]
-                       (d/transact! conn conf-retractions)
-                       (->> txs
-                            (into [merged-ent-with-rattr-refs])
-                            (d/transact! conn))))))
+                     (wrap-upsert-error
+                       #(let [db                         @conn
+                              conflicting-ents           (find-conflicting-entities db ent-map)
+                              conf-retractions           (into []
+                                                               (map (fn [{:keys [db/id]}]
+                                                                      [:db/retractEntity id]))
+                                                               conflicting-ents)
+                              merged-ent                 (into prepped-ent
+                                                               cat
+                                                               conflicting-ents)
+                              merged-ent-with-rattr-refs (into merged-ent
+                                                               (ents->rattr-refs db conflicting-ents))]
+                          (d/transact! conn conf-retractions)
+                          (->> txs
+                               (into [merged-ent-with-rattr-refs])
+                               (d/transact! conn)))))))
             eid (if (neg-int? db-id)
                   (get tempids db-id)
                   db-id)]

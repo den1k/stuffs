@@ -131,6 +131,14 @@
      (-> arg#
          ~@body)))
 
+(defmacro cond+ [& clauses]
+  (when-some [[test expr & rest] clauses]
+    (case test
+      :do `(do ~expr (cond+ ~@rest))
+      :let `(let ~expr (cond+ ~@rest))
+      :some `(or ~expr (cond+ ~@rest))
+      `(if ~test ~expr (cond+ ~@rest)))))
+
 (defn space-join [& [s & more :as strs]]
   (if (empty? more)
     (str s)
@@ -280,6 +288,9 @@
     (some->> (sp/select walker data)
              not-empty
              (mapv #(cond-> % (not (vector? %)) vector)))))
+
+(defn identity-thunk [thunk]
+  (thunk))
 
 (def identity-xf (map identity))
 
@@ -504,10 +515,34 @@
 (defn simple-snake->camel-case [s]
   (str/replace s #"_" "-"))
 
+(defn space->dash [s]
+  (-> s
+      str/trim
+      (str/replace #"\s+" "-")))
+
 (def contains-white-space?
   (let [r (regal/regex [:cat :whitespace])]
     (fn [s]
       (boolean (re-find r s)))))
+
+(def remove-parens-and-content
+  (let [r (regal/regex [:cat [:* " "] "(" [:* [:not ")"]] ")" [:* " "]])]
+    (fn [s]
+      (-> s
+          (str/replace r " ")
+          str/trim))))
+
+(comment
+  (require '[lambdaisland.regal.parse :as rp])
+  (remove-parens-and-content "askjasdlas")
+  (rp/parse "(?<=\\/clerk\\/admin\\/).*")
+  (re-find
+    (regal/regex
+      (rp/parse #"(?<=\/clerk\/admin\/).*"))
+    "/clerk/admin/_ws")
+  (re-find #"(?<=\/clerk\/admin\/).*"
+           "/clerk/admin/_ws/foo")
+  )
 
 (defn strl
   "same as (str/lower-case (str x))"
