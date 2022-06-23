@@ -169,11 +169,11 @@
 
 (defn debounce [thunk interval]
   #?(:cljs (gfns/debounce thunk interval)
-     :clj  (assert false "Not implemented")))
+     :clj  (println `debounce "Not implemented")))
 
 (defn throttle [thunk interval]
   #?(:cljs (gfns/throttle thunk interval)
-     :clj  (assert false "Not implemented")))
+     :clj  (println `debounce "Not implemented")))
 
 (defn memoize-ttl [f interval]
   #?(:clj  (mem/ttl f :ttl/threshold interval)
