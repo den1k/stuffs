@@ -2,6 +2,7 @@
   "CLJC namespace for CLJS and CLJ SSR support."
   (:require
     [cognitect.transit :as t]
+    [stuffs.util :as su]
     #?@(:cljs
         [[kitchen-async.promise :as p]
          [stuffs.js-interop :as j]
@@ -65,14 +66,21 @@
   ([dispatch-vec cb]
    #?(:cljs
       (p/then
-        (fetch/post @dispatch-url
-                    (assoc @fetch-transit-opts :body dispatch-vec))
+        (do
+          #spy/c [:doing dispatch-vec]
+          (fetch/post @dispatch-url
+                     (assoc @fetch-transit-opts :body dispatch-vec)))
         (fn [{:as resp :keys [status body]}]
           (if (= 200 status)
             (cb body)
             (js/console.error
               "stuffs.tawk/dispatch error:"
               (ex-info body resp))))))))
+
+(def dispatch-50 (su/debounce dispatch 50))
+(def dispatch-100 (su/debounce dispatch 100))
+(def dispatch-150 (su/debounce dispatch 150))
+(def dispatch-200 (su/debounce dispatch 200))
 
 (comment
 
