@@ -66,10 +66,8 @@
   ([dispatch-vec cb]
    #?(:cljs
       (p/then
-        (do
-          #spy/c [:doing dispatch-vec]
-          (fetch/post @dispatch-url
-                     (assoc @fetch-transit-opts :body dispatch-vec)))
+        (fetch/post @dispatch-url
+                    (assoc @fetch-transit-opts :body dispatch-vec))
         (fn [{:as resp :keys [status body]}]
           (if (= 200 status)
             (cb body)
