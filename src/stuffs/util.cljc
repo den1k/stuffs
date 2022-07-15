@@ -126,6 +126,25 @@
   ([f g & fs]
    (reduce rcomp (conj fs g f))))
 
+(defn some-comp
+  "Takes a set of functions and returns a fn that is the composition
+  of those fns.  The returned fn takes a variable number of args,
+  applies the rightmost of fns to the args, the next
+  fn (right-to-left) to the result, etc."
+  {:added  "1.0"
+   :static true}
+  ([] identity)
+  ([f] f)
+  ([f g]
+   (fn
+     ([] (some-> (g) f))
+     ([x] (some-> (g x) f))
+     ([x y] (some-> (g x y) f))
+     ([x y z] (some-> (g x y z) f))
+     ([x y z & args] (some-> (apply g x y z args) f))))
+  ([f g & fs]
+   (reduce some-comp (list* f g fs))))
+
 (defmacro f->
   "Wraps clojure.core/-> into an anonymous fn of one arg. Similar to comp, but
    doesn't require forms to be functions."
