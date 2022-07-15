@@ -36,7 +36,7 @@
       (read-clipboard-promise)))
   ([on-content]
    #?(:cljs
-      (p/then (read-clipboard-promise) on-content))))
+      (p/then (read-clipboard-promise) (comp on-content not-empty)))))
 
 (defn location
   ([]

@@ -106,6 +106,9 @@
     (sequential? x) (vec x)
     :else [x]))
 
+(defn remove-nil-vals [m]
+  (md/remove-vals nil? m))
+
 (defn rcomp
   "Like comp but composes in reverse, so:
   ((comp str inc) 2) => \"3\" becomes
@@ -131,13 +134,20 @@
      (-> arg#
          ~@body)))
 
-(defmacro cond+ [& clauses]
-  (when-some [[test expr & rest] clauses]
-    (case test
-      :do `(do ~expr (cond+ ~@rest))
-      :let `(let ~expr (cond+ ~@rest))
-      :some `(or ~expr (cond+ ~@rest))
-      `(if ~test ~expr (cond+ ~@rest)))))
+(defn some->m [m & ks-fns]
+  (assert (even? (count ks-fns)))
+  (reduce (fn [m [k f]]
+            (if-some [ret (f m)]
+              (assoc m k ret)
+              (reduced m)))
+          m
+          (partition 2 ks-fns)))
+
+(defmacro <-
+  "Converts a ->> to a ->
+   (->> (range 10) (map inc) (<- (doto prn)) (reduce +))"
+  [& body]
+  `(-> ~(last body) ~@(butlast body)))
 
 (defn space-join [& [s & more :as strs]]
   (if (empty? more)
@@ -531,6 +541,19 @@
       (-> s
           (str/replace r " ")
           str/trim))))
+
+;; https://github.com/brandonbloom/fipp/issues/77
+(def url-regex
+  (re-pattern "^https?:\\/\\/(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_\\+.~#?&//=]*)$"))
+
+(defn url? [x]
+  (boolean
+    (and (string? x)
+         (re-find url-regex x))))
+
+(defn url-remove-http-www-q-params [x]
+  (and (url? x)
+       (str/replace x (re-pattern "http(s)?(:)?(\\/\\/)?|(\\/\\/)?(www\\.)?(/?\\?.*)?(\\/$)?") "")))
 
 (comment
   (require '[lambdaisland.regal.parse :as rp])
