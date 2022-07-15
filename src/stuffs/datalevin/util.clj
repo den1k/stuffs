@@ -317,7 +317,7 @@
                  (de/entity? eid) (:db/id eid)
                  (d/datom? eid) (:e eid)
                  :else eid)]
-       (some-> (existing-entity db ref) d/touch)))))
+       (existing-entity db ref)))))
 
 (defn make-datoms->entities [conn]
   (let [datoms (make-datoms conn)
