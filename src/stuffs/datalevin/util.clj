@@ -303,21 +303,24 @@
     ([& args]
      (apply d/datoms @conn args))))
 
-(defn make-entity [conn]
-  (fn entity
-    ([]
-     (let [db @conn]
-       (fn entity-fn [eid]
-         (entity db eid))))
-    ([eid]
-     (entity @conn eid))
-    ([db eid]
-     (let [ref (cond
-                 (and (vector? eid) (su/keyword-identical? :db/id (first eid))) (second eid)
-                 (de/entity? eid) (:db/id eid)
-                 (d/datom? eid) (:e eid)
-                 :else eid)]
-       (existing-entity db ref)))))
+(defn make-entity
+  ([conn] (make-entity conn false))
+  ([conn touch?]
+   (fn entity
+     ([]
+      (let [db @conn]
+        (fn entity-fn [eid]
+          (entity db eid))))
+     ([eid]
+      (entity @conn eid))
+     ([db eid]
+      (let [ref (cond
+                  (and (vector? eid) (su/keyword-identical? :db/id (first eid))) (second eid)
+                  (de/entity? eid) (:db/id eid)
+                  (d/datom? eid) (:e eid)
+                  :else eid)]
+        (cond-> (existing-entity db ref)
+          touch? (some-> d/touch)))))))
 
 (defn make-datoms->entities [conn]
   (let [datoms (make-datoms conn)
