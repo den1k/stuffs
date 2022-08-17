@@ -16,9 +16,9 @@
 
          mount/mount                 {:mvn/version "0.1.16"}
          den1k/spyscope              {:git/url "https://github.com/den1k/spyscope"
-                                      :sha     "c4a80168cf8b60f5aaed04a03d8ec51e1ccf47ce"}
+                                      :sha     "83f9a19939378f83e6fbc108b02288c4eb7d5552"}
          hyperfiddle/rcf             {:git/url "https://github.com/hyperfiddle/rcf.git"
-                                      :sha     "33a9fe107b41c7d558f3aef58f2b89364f67e1a0"}
+                                      :sha     "21c2c06cfcfd8a424cfcff03ebc43db95a1b6095"}
 
          applied-science/js-interop  {:mvn/version "0.3.3"}
          mhuebert/kitchen-async      {:mvn/version "0.1.0"}
