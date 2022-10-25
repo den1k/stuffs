@@ -303,6 +303,14 @@
     ([& args]
      (apply d/datoms @conn args))))
 
+(defn make-fulltext-search-datoms [conn]
+  (fn datoms
+    ([]
+     (fn datoms-fn [& args]
+       (apply d/fulltext-datoms @conn args)))
+    ([& args]
+     (apply d/fulltext-datoms @conn args))))
+
 (defn make-entity
   ([conn] (make-entity conn false))
   ([conn touch?]

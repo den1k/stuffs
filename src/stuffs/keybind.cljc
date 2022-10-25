@@ -271,7 +271,7 @@
 (defonce bind-keypress-listener
   #?(:clj nil
      :cljs
-          (js/addEventListener "keydown" (dispatcher! BINDINGS) false)))
+     (js/addEventListener "keydown" (dispatcher! BINDINGS) false)))
 
 ;; Macros
 

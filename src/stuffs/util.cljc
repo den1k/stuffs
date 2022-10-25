@@ -11,7 +11,8 @@
             #?@(:clj  [[clojure.java.io :as io]
                        [clojure.data.csv :as csv]
                        [jsonista.core :as json]
-                       [clojure.core.memoize :as mem]]
+                       [clojure.core.memoize :as mem]
+                       [stuffs.impl.string :as sstr]]
                 :cljs [[goog.functions :as gfns]
                        [cljs.core :as cljs]
                        [stuffs.impl.partial :as partial]])
@@ -60,6 +61,19 @@
 
 (def update-existing md/update-existing)
 (def assoc-some md/assoc-some)
+
+(defn fn-map
+  "(fn-map {:odd? odd? :even? even?} 1)
+   => {:odd? true, :even? false}"
+  ([f-map]
+   (fn [x]
+     (reduce-kv
+       (fn [out k f]
+         (assoc out k (f x)))
+       {}
+       f-map)))
+  ([f-map x]
+   ((fn-map f-map) x)))
 
 (defn fn-map->transform
   "(fn-map->transform {:number inc}
@@ -590,3 +604,6 @@
   "same as (str/lower-case (str x))"
   [x]
   (-> x str str/lower-case))
+
+(defmacro str-interpolate [& strings]
+  `(sstr/interpolate ~@strings))
