@@ -1,6 +1,10 @@
 (ns stuffs.route
   (:require [lambdaisland.uri :as uri]
+            [lambdaisland.uri.normalize :as uri.normalize]
+            [clojure.string :as str]
             [medley.core :as md]
+            [stuffs.js-interop :as j]
+            [stuffs.util :as su]
             #?@(:cljs [[reitit.frontend :as rf]
                        [reitit.frontend.easy :as rfe]])))
 
@@ -49,3 +53,48 @@
      (kv-join "/" path-params)
      (when (not-empty query-params)
        (str "?" (uri/map->query-string query-params))))))
+
+(defn query-encode-k [k]
+  (uri/query-encode
+    (cond
+      (simple-ident? k)
+      (name k)
+      (qualified-ident? k)
+      (str (namespace k) "/" (name k))
+      :else (str k))))
+
+(defn query-encode-kv [k v]
+  [(query-encode-k k)
+   ;; encodes edn at the cost of
+   ;; being more verbose ¯\_(ツ)_/¯
+   (uri/query-encode (pr-str v))])
+
+(defn query-decode-k [k]
+  (when k (uri.normalize/percent-decode k)))
+
+(defn query-decode-v [v]
+  (when v (su/read-edn (uri.normalize/percent-decode (str/replace v #"\+" " ")))))
+
+(defn get-query-k
+  [k]
+  #?(:cljs
+     (let [url (js/URL. (j/get js/window :location))]
+       (some-> (j/call-in url [:searchParams :get] (query-encode-k k))
+               query-decode-v))))
+
+(defn set-query-kv [k v]
+  #?(:cljs
+     (let [url (js/URL. (j/get js/window :location))
+           [qk qv] (query-encode-kv k v)]
+       (if false #_(and (string? v) (empty? v))
+         (j/call-in url [:searchParams :delete] qk)
+         (j/call-in url [:searchParams :set] qk qv))
+       (j/call-in js/window [:history :pushState] #js {} "" url))))
+
+(defn into-query [m]
+  #?(:cljs
+     (let [url (js/URL. (j/get js/window :location))]
+       (doseq [[k v] m
+               :let [[qk qv] (query-encode-kv k v)]]
+         (j/call-in url [:searchParams :set] qk qv))
+       (j/call-in js/window [:history :pushState] #js {} "" url))))
