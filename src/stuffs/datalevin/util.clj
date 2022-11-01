@@ -149,25 +149,27 @@
       true (assoc :updated-at inst))))
 
 (defn- prep-entity-for-transact [db {:as ent-map db-id :db/id} {:as opts :keys [idk]}]
-  (let [id   (idk ent-map)
+  (let [id   (when idk (idk ent-map))
         inst (su/date-instant)
         {:keys [created-at] db-id :db/id exist-id idk} (cond db-id (existing-entity db db-id)
                                                              id (d/entity db [idk id]))]
     (-> (map-refs (fn [db ent-map] (prep-entity-for-transact db ent-map opts)) ent-map db)
         (assoc
           :db/id (or db-id (tempid-gen))
-          idk (or id exist-id (su/id-gen))
           :created-at (or created-at inst)
-          :updated-at inst))))
+          :updated-at inst)
+        (cond->
+          idk (assoc idk (or id exist-id (su/id-gen)))))))
 
-(defn- prep-entity-for-transact2 [db {:as ent-map db-id :db/id} {:as opts}]
+(defn- prep-entity-for-transact2 [db {:as ent-map db-id :db/id} {:as opts :keys [timestamps?]}]
   (let [inst (su/date-instant)
         {:keys [created-at] db-id :db/id} (find-entity db ent-map)]
     (-> (map-refs (fn [db ent-map] (prep-entity-for-transact2 db ent-map opts)) ent-map db)
-        (assoc
-          :db/id (or db-id (tempid-gen))
-          :created-at (or created-at inst)
-          :updated-at inst))))
+        (cond->
+          true (assoc :db/id (or db-id (tempid-gen)))
+          timestamps? (assoc
+                        :created-at (or created-at inst)
+                        :updated-at inst)))))
 
 (defn make-transact-entity!
   "Transacts and returns an entity against an immutable DB value"
@@ -239,7 +241,7 @@
 (defn make-transact-entities!
   "Transacts entities against an immutable DB value
   Retracts attrs with `nil` values"
-  ([conn] (make-transact-entities! conn {:idk :id}))
+  ([conn] (make-transact-entities! conn {}))
   ([conn opts]
    (fn tx-ents!
      ([ent-maps] (tx-ents! conn [] ent-maps))
@@ -311,6 +313,34 @@
     ([& args]
      (apply d/fulltext-datoms @conn args))))
 
+(defn datoms->entities* [db datoms]
+  (sequence
+    (comp (map :e)
+          (keep #(d/entity db %)))
+    datoms))
+
+(defn fulltext-entities
+  ([db q]
+   (->> (d/fulltext-datoms db q)
+        (datoms->entities* db)))
+  ([db attr q]
+   (->> (d/fulltext-datoms db q {:doc-filter (fn [{:keys [a]}] (= a attr))})
+        (datoms->entities* db))))
+
+(defn make-fulltext-entities [conn]
+  (fn fulltext-entities
+    ([q]
+     (fulltext-entities @conn q))
+    ([attr q]
+     (fulltext-entities @conn attr q))))
+
+(defn ->ref [x]
+  (cond
+    (and (vector? x) (su/keyword-identical? :db/id (first x))) (second x)
+    (de/entity? x) (:db/id x)
+    (d/datom? x) (:e x)
+    :else x))
+
 (defn make-entity
   ([conn] (make-entity conn false))
   ([conn touch?]
@@ -322,13 +352,8 @@
      ([eid]
       (entity @conn eid))
      ([db eid]
-      (let [ref (cond
-                  (and (vector? eid) (su/keyword-identical? :db/id (first eid))) (second eid)
-                  (de/entity? eid) (:db/id eid)
-                  (d/datom? eid) (:e eid)
-                  :else eid)]
-        (cond-> (existing-entity db ref)
-          touch? (some-> d/touch)))))))
+      (cond-> (existing-entity db (->ref eid))
+        touch? (some-> d/touch))))))
 
 (defn make-datoms->entities [conn]
   (let [datoms (make-datoms conn)
