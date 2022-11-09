@@ -26,5 +26,8 @@
 (def spaced-gap
   (transduce (spread-style-xf :.gap :gap :rem) str spacing))
 
+(def min-height
+  (transduce (spread-style-xf :.mih :min-height :rem) str spacing))
+
 (def max-height
   (transduce (spread-style-xf :.mxh :max-height :rem) str spacing))

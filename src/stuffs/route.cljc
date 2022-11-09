@@ -86,7 +86,7 @@
   #?(:cljs
      (let [url (js/URL. (j/get js/window :location))
            [qk qv] (query-encode-kv k v)]
-       (if false #_(and (string? v) (empty? v))
+       (if (and (string? v) (empty? v))
          (j/call-in url [:searchParams :delete] qk)
          (j/call-in url [:searchParams :set] qk qv))
        (j/call-in js/window [:history :pushState] #js {} "" url))))
