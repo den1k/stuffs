@@ -8,12 +8,14 @@
             [hickory.core :as hic]
             [taoensso.encore :as enc]
             [lambdaisland.regal :as regal]
+            [net.cgrand.xforms :as x :include-macros true]
             #?@(:clj  [[clojure.java.io :as io]
                        [clojure.data.csv :as csv]
                        [jsonista.core :as json]
                        [clojure.core.memoize :as mem]
                        [stuffs.impl.string :as sstr]]
                 :cljs [[goog.functions :as gfns]
+                       [goog.string :as gstr]
                        [cljs.core :as cljs]
                        [stuffs.impl.partial :as partial]])
             [medley.core :as md]
@@ -186,6 +188,22 @@
   (if (empty? more)
     (str s)
     (str/join " " strs)))
+
+(defn numbered-join
+  "((numbered-join {:num-right-s \".\" :sep \"\\n\"}) [\"foo\" \"bar\"])\n=> \"1. foo\\n2. bar\""
+  [{:keys [sep num-left-s num-right-s coll start-n]
+    :or   {sep         " "
+           num-right-s "."
+           start-n 1}}]
+  (letfn [(str-numbered-join [coll]
+            (x/str
+              (comp (map-indexed (fn [i s]
+                                   (str num-left-s (+ i start-n) num-right-s " " s)))
+                    (interpose sep))
+              coll))]
+    (if coll
+      (str-numbered-join coll)
+      str-numbered-join)))
 
 (defn read-edn [s]
   #?(:clj  (read-string s)
@@ -574,6 +592,11 @@
       (-> s
           (str/replace r " ")
           str/trim))))
+
+(def collapse-whitespace
+  ;; whitespace regex copied from `gstr/collapseWhitespace` impl
+  #?(:clj  (comp str/trim #(str/replace % #"[\s\xa0]+" " "))
+     :cljs gstr/collapseWhitespace))
 
 ;; https://github.com/brandonbloom/fipp/issues/77
 (def url-regex
