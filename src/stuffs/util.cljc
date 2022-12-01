@@ -194,7 +194,7 @@
   [{:keys [sep num-left-s num-right-s coll start-n]
     :or   {sep         " "
            num-right-s "."
-           start-n 1}}]
+           start-n     1}}]
   (letfn [(str-numbered-join [coll]
             (x/str
               (comp (map-indexed (fn [i s]
@@ -204,6 +204,13 @@
     (if coll
       (str-numbered-join coll)
       str-numbered-join)))
+
+(defn str-comma-and-join [coll]
+  (case (count coll)
+    0 ""
+    1 (first coll)
+    2 (str (first coll) " and " (second coll))
+    (str (str/join ", " (butlast coll)) " and " (last coll))))
 
 (defn read-edn [s]
   #?(:clj  (read-string s)
@@ -630,3 +637,10 @@
 
 (defmacro str-interpolate [& strings]
   `(sstr/interpolate ~@strings))
+
+(def str-unquote
+  (let [start-end-quotes (delay (regal/regex [:alt [:cat :start "\""] [:cat "\"" :end]]))]
+    (fn [s]
+      (-> s
+          str/trim
+          (str/replace @start-end-quotes "")))))
