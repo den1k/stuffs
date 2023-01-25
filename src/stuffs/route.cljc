@@ -5,6 +5,7 @@
             [medley.core :as md]
             [stuffs.js-interop :as j]
             [stuffs.util :as su]
+            [reitit.core :as r]
             #?@(:cljs [[reitit.frontend :as rf]
                        [reitit.frontend.easy :as rfe]])))
 
@@ -44,6 +45,10 @@
       (interpose sep))
     str
     m))
+
+(defn route->path* [router [route-k path-params query-params]]
+  (let [match (r/match-by-name! router route-k path-params)]
+    (r/match->path match query-params)))
 
 (defn href
   ([path-params] (href path-params nil))
