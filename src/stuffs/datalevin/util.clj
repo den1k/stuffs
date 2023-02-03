@@ -21,6 +21,7 @@
 (def reverse-ref ddb/reverse-ref)
 (def mem-reverse-ref (memoize ddb/reverse-ref))
 (def ref? ddb/ref?)
+(def entity? de/entity?)
 
 (defn- rschema->attr-types
   [{ref-attrs  :db.type/ref
@@ -213,10 +214,8 @@
                       (d/transact! conn))
                  (catch Throwable e
                    ;; merge on upsert error
-                   (println ::error e)
-                   (when (-> (ex-data e)
-                             :error
-                             (= :transact/upsert))
+                   (case (:error (ex-data e))
+                     :transact/upsert
                      (wrap-upsert-error
                        #(let [db                         @conn
                               conflicting-ents           (find-conflicting-entities db ent-map)
@@ -232,7 +231,9 @@
                           (d/transact! conn conf-retractions)
                           (->> txs
                                (into [merged-ent-with-rattr-refs])
-                               (d/transact! conn)))))))
+                               (d/transact! conn))))
+                     ; rethrow if not upsert error
+                     (throw e))))
             eid (if (neg-int? db-id)
                   (get tempids db-id)
                   db-id)]
@@ -336,6 +337,7 @@
 
 (defn ->ref [x]
   (cond
+    (pos-int? x) x                                          ; eid
     (and (vector? x) (su/keyword-identical? :db/id (first x))) (second x)
     (de/entity? x) (:db/id x)
     (d/datom? x) (:e x)

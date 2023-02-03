@@ -38,12 +38,38 @@
   (or (some-> (:ns &env) :name str)                         ; cljs
       `(str *ns*)))                                         ; clj
 
-(defn namespace-key
-  [nsp k]
-  (keyword (name nsp) (name k)))
+(declare contains-white-space?)
+
+(defn ->kw-str [string-kw-or-sym]
+  (let [s (some-> string-kw-or-sym name str/trim not-empty)]
+    (if (and s (not (contains-white-space? s)))
+      s
+      (throw (ex-info (str "Invalid input: " string-kw-or-sym)
+                      {:input string-kw-or-sym})))))
+
+(defn str-starts-with-number? [s]
+  (and (string? s)
+       (boolean (re-find #"^\d" s))))
+
+(def namespace-key
+  (letfn [(throw-when-str-starts-with-number [s]
+            (if (str-starts-with-number? s)
+              (throw (ex-info (str "key cannot start with number: " s)
+                              {:k s}))
+              s))]
+    (fn ns-k
+     ([nsp]
+      (let [nsp' (->kw-str nsp)]
+        (fn nsk [k]
+          (keyword nsp' (throw-when-str-starts-with-number (->kw-str k))))))
+     ([nsp k]
+      (keyword (->kw-str nsp) (throw-when-str-starts-with-number (->kw-str k)))))))
 
 (defn un-ns-k [k]
   (some-> k name keyword))
+
+(defn k->ns-k [k]
+  (some-> k namespace keyword))
 
 (defn prefix-key [prefix k]
   (keyword (str (name prefix) (name k))))
@@ -454,7 +480,7 @@
   (when x
     (str/trim (with-out-str (pprint x)))))
 
-(defn prexix-pprint [prefix x]
+(defn prefix-pprint [prefix x]
   (println prefix (pretty-string x)))
 
 (defn delete-directory-recursive
@@ -644,3 +670,6 @@
       (-> s
           str/trim
           (str/replace @start-end-quotes "")))))
+
+(defn str-ends-with-whitespace? [s]
+  (boolean (re-find #"\s$" s)))
