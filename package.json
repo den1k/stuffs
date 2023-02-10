@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "sse.js": "^0.6.1"
+  }
+}
