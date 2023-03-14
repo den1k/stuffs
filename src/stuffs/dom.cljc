@@ -533,13 +533,24 @@
   #?(:cljs
      (j/call-in js/document [:body :contains] node)))
 
+(defn event-listener*
+  ([target cb]
+   #?(:cljs
+      (.addEventListener js/document
+                         target
+                         cb)))
+  ([target cb capture?]
+   #?(:cljs
+      (.addEventListener js/document
+                         target
+                         cb
+                         capture?))))
+
 (defn on-focus [cb]
-  #?(:cljs
-     (.addEventListener js/document
-                        "focus"
-                        cb
-                        ; capture
-                        true)))
+  (event-listener* "focus" cb true))
+
+(defn on-blur [cb]
+  (event-listener* "blur" cb true))
 
 (defn on-copy [cb]
   #?(:cljs

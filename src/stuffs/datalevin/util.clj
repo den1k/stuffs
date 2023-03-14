@@ -6,7 +6,8 @@
             [stuffs.util :as su]
             [clojure.set :as set]
             [datalevin.storage :as s]
-            [net.cgrand.xforms :as x])
+            [net.cgrand.xforms :as x]
+            [stuffs.env :as env])
   (:import (datalevin.storage Store)
            (datalevin.db DB)))
 
@@ -294,9 +295,24 @@
         )))))
 
 (defn existing-entity [db eid]
-  (when (and (ddb/entid db eid)
+  (when (and eid
+             (ddb/entid db eid)
              (not-empty (d/datoms db :eavt eid)))
     (d/entity db eid)))
+
+(defn entity
+  ([db]
+   (fn entity-fn [eid]
+     (entity db eid)))
+  ([db eid]
+   (when ref
+     (let [ref (cond
+                 (and (vector? eid) (= :db/id (first eid))) (second eid)
+                 (de/entity? eid) (:db/id eid)
+                 (d/datom? eid) (:e eid)
+                 :else eid)]
+       (cond-> (existing-entity db ref)
+         env/dev? (some-> d/touch))))))
 
 (defn make-datoms [conn]
   (fn datoms
@@ -383,7 +399,7 @@
                    "Query should be a vector or a map"
                    {:error :parser/query, :form q}))))
 
-(defn q-entity [db query]
+(defn q-entities [db query]
   (let [query (-> (query->map query)
                   (update :in #(if %
                                  (into '[$ ?entfn] %)
@@ -392,9 +408,29 @@
                   (update :where conj '[(?entfn $ ?e) ?ent]))]
     (d/q query db d/entity)))
 
+(defn q-entity [db query]
+  (let [query (-> (query->map query)
+                  (update :in #(if %
+                                 (into '[$ ?entfn] %)
+                                 '[$ ?entfn]))
+                  (assoc :find '[?ent .])
+                  (update :where conj '[(?entfn $ ?e) ?ent]))]
+    (d/q query db d/entity)))
+
 (defn make-q [conn]
   (fn [q & args]
     (apply d/q q @conn args)))
+
+(defn make-q-entities [conn]
+  (fn [q]
+    (q-entities @conn q)))
+
+(defn where-entities [db where-clauses]
+  (q-entities db (into [:where] where-clauses)))
+
+(defn make-where-entities [conn]
+  (fn [where-clauses]
+    (where-entities @conn where-clauses)))
 
 (defn make-q-entity [conn]
   (fn [q]

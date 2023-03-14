@@ -10,6 +10,7 @@
             [lambdaisland.regal :as regal]
             [net.cgrand.xforms :as x :include-macros true]
             #?@(:clj  [[clojure.java.io :as io]
+                       [uix.dom.alpha :as uix.dom]
                        [clojure.data.csv :as csv]
                        [jsonista.core :as json]
                        [clojure.core.memoize :as mem]
@@ -58,12 +59,12 @@
                               {:k s}))
               s))]
     (fn ns-k
-     ([nsp]
-      (let [nsp' (->kw-str nsp)]
-        (fn nsk [k]
-          (keyword nsp' (throw-when-str-starts-with-number (->kw-str k))))))
-     ([nsp k]
-      (keyword (->kw-str nsp) (throw-when-str-starts-with-number (->kw-str k)))))))
+      ([nsp]
+       (let [nsp' (->kw-str nsp)]
+         (fn nsk [k]
+           (keyword nsp' (throw-when-str-starts-with-number (->kw-str k))))))
+      ([nsp k]
+       (keyword (->kw-str nsp) (throw-when-str-starts-with-number (->kw-str k)))))))
 
 (defn un-ns-k [k]
   (some-> k name keyword))
@@ -469,6 +470,22 @@
     (< num lower-bound) lower-bound
     (> num upper-bound) upper-bound))
 
+(defn normalize
+  ([nums]
+   (let [mi (apply min nums)
+         mx (apply max nums)
+         f  (normalize mi mx)]
+     (map f nums)))
+  ([min max]
+   {:pre (> max min)}
+   (let [max' (- max min)]
+     (fn [num]
+       (let [normd (/ (- num min) max')]
+         #_(println (float normd))
+         (assert (>= 1 normd 0))
+         normd)))))
+
+
 (defn round [points num]
   (let [pts (Math/pow 10 points)]
     (float (/ (Math/round (* pts num)) pts))))
@@ -580,6 +597,10 @@
     (case (count frags)
       1 (hic/as-hiccup (first frags))
       (into [:div {}] (map hic/as-hiccup) frags))))
+
+(defn hiccup->html [h]
+  #?(:clj
+     (uix.dom/render-to-static-markup h)))
 
 #?(:clj
    (defn- clipboard []

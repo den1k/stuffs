@@ -164,7 +164,7 @@
     [(get KEYS (str/lower-case button)) {:shift true}]))
 
 (defn parse-chord [keystring]
-  (let [bits   (str/split keystring #"-(?!$)")
+  (let [bits   (str/split keystring #"\+(?!$)")
         button (nth bits (-> bits count dec))
         [code mods] (button->code button)]
     (when-not code
@@ -294,7 +294,10 @@
      Parses chords at compile time."
      [e & clauses]
      (let [parsed-chains (->> (partition 2 clauses)
-                              (mapcat (fn [[chord expr]] [(parse-chord chord) expr])))]
+                              (mapcat (fn [[chord expr]]
+                                        [(if (list? chord)
+                                           (map parse-chord chord)
+                                           (parse-chord chord)) expr])))]
        `(case (e->chord ~e)
           ~@parsed-chains
           false))))
