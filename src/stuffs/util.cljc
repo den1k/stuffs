@@ -9,6 +9,7 @@
             [taoensso.encore :as enc]
             [lambdaisland.regal :as regal]
             [net.cgrand.xforms :as x :include-macros true]
+            [net.cgrand.xforms.rfs :as rf :include-macros true]
             #?@(:clj  [[clojure.java.io :as io]
                        [uix.dom.alpha :as uix.dom]
                        [clojure.data.csv :as csv]
@@ -120,6 +121,25 @@
      ))
   ([fn-map m]
    ((fn-map->transform fn-map) m)))
+
+(defn xf-map-reduce
+  "(xf-map-reduce
+  {:cost (x/reduce +)
+   :pct  x/avg}
+  [{:cost 1
+    :pct  0.8}
+   {:cost 1
+    :pct  0.7}])
+  => {:cost 2, :pct 0.75}"
+  ([xfm]
+   (x/transjuxt
+     (into {}
+           (map (fn [[k xf]]
+                  [k (comp (map k)
+                           xf)]))
+           xfm)))
+  ([xfm coll]
+   (transduce (xf-map-reduce xfm) rf/last coll)))
 
 (defn nfurcate
   "(nfurcate {:odd? odd?
