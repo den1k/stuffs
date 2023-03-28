@@ -1,5 +1,6 @@
 (ns stuffs.mount
-  (:require [mount.core :as mount])
+  (:require [mount.core :as mount]
+            [clojure.tools.namespace.repl :as tnr])
   #?(:cljs (:require-macros [stuffs.mount])))
 
 (defn start [& syms]
@@ -26,6 +27,10 @@
      (stop ~@state-syms)
      ~@body
      (start ~@state-syms)))
+
+(defn reset []
+  (mount/stop)
+  (tnr/refresh :after 'mount.core/start))
 
 (comment
 
