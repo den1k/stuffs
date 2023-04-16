@@ -164,7 +164,7 @@
           idk (assoc idk (or id exist-id (su/id-gen)))))))
 
 (defn- prep-entity-for-transact2 [db {:as ent-map db-id :db/id} {:as opts :keys [timestamps?]}]
-  (let [inst (su/date-instant)
+  (let [inst (when timestamps? (su/date-instant))
         {:keys [created-at] db-id :db/id} (find-entity db ent-map)]
     (-> (map-refs (fn [db ent-map] (prep-entity-for-transact2 db ent-map opts)) ent-map db)
         (cond->
@@ -293,6 +293,25 @@
         ;; todo return transacted entities
         tx-report
         )))))
+
+(defn make-transact-entity-simple!
+  "Transacts a map and returns the resulting entity"
+  ([conn] (make-transact-entity-simple! conn {}))
+  ([conn opts]
+   (fn tx-ent!
+     ([ent-map] (tx-ent! conn [] ent-map))
+     ([txs ent-map] (tx-ent! conn txs ent-map))
+     ([conn txs ent-map]
+      (let [db-id       (or (some-> (find-entity @conn ent-map) :db/id) (tempid-gen))
+            tempid?     (neg-int? db-id)
+            prepped-ent (cond-> ent-map
+                          tempid? (assoc :db/id db-id))
+            {:keys [db-after tempids]} (->> (conj (vec txs) prepped-ent)
+                                            (d/transact! conn))
+            eid         (if tempid?
+                          (get tempids db-id)
+                          db-id)]
+        (d/touch (d/entity db-after eid)))))))
 
 (defn existing-entity [db eid]
   (when (and eid
