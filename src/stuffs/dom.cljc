@@ -593,3 +593,8 @@
               (j/call cur-node :removeEventListener cur-handler))
             (j/call node :addEventListener type handler)
             [node handler]))))
+
+(defn node=or-contains? [node contained-node]
+  #?(:cljs
+     (or (j/call node :contains contained-node)
+         (= node contained-node))))
