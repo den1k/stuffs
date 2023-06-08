@@ -324,12 +324,24 @@
       :cljs cljs/keyword-identical?)
     k1 k2))
 
-(defn f-once [f]
+(defn f-once
+  "Runs f one time only"
+  [f]
   (let [run? (atom false)]
     (fn once [& args]
       (when-not @run?
         (apply f args)
         (reset! run? true)))))
+
+(defn f-skip
+  "skip's n executions of f"
+  [n f]
+  {:pre [(pos-int? n)]}
+  (let [!n (atom n)]
+    (fn skip [& args]
+      (if (zero? @!n)
+        (apply f args)
+        (swap! !n dec)))))
 
 (defn partition-all-on [n-seq coll]
   (loop [[n & nseq] n-seq out [] coll coll]
