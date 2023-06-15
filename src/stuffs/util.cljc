@@ -19,7 +19,8 @@
                 :cljs [[goog.functions :as gfns]
                        [goog.string :as gstr]
                        [cljs.core :as cljs]
-                       [stuffs.impl.partial :as partial]])
+                       [stuffs.impl.partial :as partial]
+                       [tick.locale-en-us]])
             [medley.core :as md]
             [tick.core :as t])
   (:refer-clojure :exclude [#?(:cljs keyword-identical?) parse-long partial])
@@ -231,10 +232,15 @@
   [& body]
   `(-> ~(last body) ~@(butlast body)))
 
-(defn space-join [& [s & more :as strs]]
+#_(defn space-join [& [s & more :as strs]]
   (if (empty? more)
     (str s)
     (str/join " " strs)))
+
+(defmacro space-join
+  "Like (apply core.string/join \" \" coll) but runs at compile time using str."
+  [& xs]
+  `(str ~@(rest (interleave (repeat " ") xs))))
 
 (defn numbered-join
   "((numbered-join {:num-right-s \".\" :sep \"\\n\"}) [\"foo\" \"bar\"])\n=> \"1. foo\\n2. bar\""
@@ -388,6 +394,14 @@
   (or (date? x)
       (t/instant? x)
       (integer? x)))
+
+(def local-date-time-string
+  (let [formatter (t/formatter "uuuu/MM/dd HH:mm a")]
+    (fn
+      ([]
+       (t/format formatter (t/zoned-date-time)))
+      ([v]
+       (t/format formatter (t/zoned-date-time v))))))
 
 ;; *** DEV & DEBUG
 
