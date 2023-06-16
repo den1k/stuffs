@@ -6,6 +6,7 @@
             [clojure.pprint :refer [pprint]]
             [clojure.set :as set]
             [hickory.core :as hic]
+            [stuffs.js-interop :as j]
             [taoensso.encore :as enc]
             [lambdaisland.regal :as regal]
             [net.cgrand.xforms :as x :include-macros true]
@@ -233,9 +234,9 @@
   `(-> ~(last body) ~@(butlast body)))
 
 #_(defn space-join [& [s & more :as strs]]
-  (if (empty? more)
-    (str s)
-    (str/join " " strs)))
+    (if (empty? more)
+      (str s)
+      (str/join " " strs)))
 
 (defmacro space-join
   "Like (apply core.string/join \" \" coll) but runs at compile time using str."
@@ -402,6 +403,12 @@
        (t/format formatter (t/zoned-date-time)))
       ([v]
        (t/format formatter (t/in v (t/zone)))))))
+
+(defn current-time-zone []
+  #?(:cljs (-> (j/call js/Intl :DateTimeFormat)
+               (j/call :resolvedOptions)
+               (j/get :timeZone))
+     :clj  (str (t/zone))))
 
 ;; *** DEV & DEBUG
 
