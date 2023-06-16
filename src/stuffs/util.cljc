@@ -396,12 +396,12 @@
       (integer? x)))
 
 (def local-date-time-string
-  (let [formatter (t/formatter "uuuu/MM/dd HH:mm a")]
+  (let [formatter (t/formatter "uuuu/MM/dd hh:mm a")]
     (fn
       ([]
        (t/format formatter (t/zoned-date-time)))
       ([v]
-       (t/format formatter (t/zoned-date-time v))))))
+       (t/format formatter (t/in v (t/zone)))))))
 
 ;; *** DEV & DEBUG
 
