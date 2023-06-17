@@ -40,7 +40,7 @@
          com.taoensso/encore         {:mvn/version "3.49.0"}
          com.rpl/specter             {:mvn/version "1.1.4"}
          net.cgrand/xforms           {:mvn/version "0.19.4"}
-         tick/tick                   {:mvn/version "0.5.0"}
+         tick/tick                   {:mvn/version "0.6.2"}
          backtick/backtick           {:mvn/version "0.3.4"}
 
          org.clojure/data.csv        {:mvn/version "1.0.1"}
