@@ -173,7 +173,7 @@
 
 (defn ensure-set [x]
   (cond
-    (vector? x) (set x)
+    (set? x) x
     (nil? x) #{}
     (sequential? x) (set x)
     :else #{x}))
