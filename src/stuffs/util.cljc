@@ -171,6 +171,13 @@
     (sequential? x) (vec x)
     :else [x]))
 
+(defn ensure-set [x]
+  (cond
+    (vector? x) (set x)
+    (nil? x) #{}
+    (sequential? x) (set x)
+    :else #{x}))
+
 (defn remove-nil-vals [m]
   (md/remove-vals nil? m))
 
