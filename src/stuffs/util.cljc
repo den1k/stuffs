@@ -767,7 +767,7 @@
 
 (defmacro ascertain
   ([expr]
-   (list 'ascertain expr "could not ascertain"))
+   (list `ascertain expr "could not ascertain"))
   ([expr message]
    `(or
       ~expr
@@ -775,7 +775,7 @@
 
 (defmacro ascertain-some
   ([expr]
-   (list 'ascertain-some expr "could not ascertain"))
+   (list `ascertain-some expr "could not ascertain"))
   ([expr message]
    `(if-some [ret# ~expr]
       ret#
