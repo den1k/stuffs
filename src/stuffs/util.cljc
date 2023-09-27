@@ -245,10 +245,15 @@
       (str s)
       (str/join " " strs)))
 
+(defmacro sep-join
+  "Like (apply core.string/join \" \" coll) but runs at compile time using str."
+  [sep & xs]
+  `(str ~@(rest (interleave (repeat sep) xs))))
+
 (defmacro space-join
   "Like (apply core.string/join \" \" coll) but runs at compile time using str."
   [& xs]
-  `(str ~@(rest (interleave (repeat " ") xs))))
+  (conj xs " " `sep-join))
 
 (defn numbered-join
   "((numbered-join {:num-right-s \".\" :sep \"\\n\"}) [\"foo\" \"bar\"])\n=> \"1. foo\\n2. bar\""
@@ -549,6 +554,11 @@
 (defn round [points num]
   (let [pts (Math/pow 10 points)]
     (float (/ (Math/round (* pts num)) pts))))
+
+(defn round-2
+  "Rounds to two decimals"
+  [num]
+  (round 2 num))
 
 (defn ceil [num]
   (some-> num (Math/ceil) int))
