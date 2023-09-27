@@ -764,3 +764,21 @@
 
 (defn str-ends-with-whitespace? [s]
   (boolean (re-find #"\s$" s)))
+
+(defmacro ascertain
+  ([expr]
+   (list 'ascertain expr "could not ascertain"))
+  ([expr message]
+   `(or
+      ~expr
+      (throw (ex-info (str ~message " " (pr-str '~expr)) {})))))
+
+(defmacro ascertain-some
+  ([expr]
+   (list 'ascertain-some expr "could not ascertain"))
+  ([expr message]
+   `(if-some [ret# ~expr]
+      ret#
+      (throw (ex-info (str ~message " " (pr-str '~expr)) {})))))
+
+
