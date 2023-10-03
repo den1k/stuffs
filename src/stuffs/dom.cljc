@@ -8,7 +8,7 @@
             [stuffs.util :as u])
   #?(:cljs (:require-macros [stuffs.dom])))
 
-(defn mobile-device? []
+(def mobile-device?
   #?(:cljs
      (let [user-agent (str/lower-case (j/get-in js/window [:navigator :userAgent]))
            rxp        #"android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini"]
