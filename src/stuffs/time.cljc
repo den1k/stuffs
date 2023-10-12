@@ -1,6 +1,7 @@
 (ns stuffs.time
   (:require [stuffs.util :as su]
-            [tick.core :as t]))
+            [tick.core :as t])
+  (:refer-clojure :exclude [future?]))
 
 (defn forward-seq [start-t interval]
   (iterate #(t/>> % interval) start-t))
@@ -15,6 +16,9 @@
 
 (defn future? [d]
   (t/> d (t/now)))
+
+(defn past? [d]
+  (t/< d (t/now)))
 
 (defn future-times [start-t interval]
   (filter future? (forward-seq start-t interval)))

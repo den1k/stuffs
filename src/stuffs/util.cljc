@@ -563,6 +563,9 @@
 (defn ceil [num]
   (some-> num (Math/ceil) int))
 
+(defn floor [num]
+  (some-> num (Math/floor) int))
+
 (defn pretty-string [x]
   (when x
     (str/trim (with-out-str (pprint x)))))
@@ -781,4 +784,19 @@
       ret#
       (throw (ex-info (str ~message " " (pr-str '~expr)) {})))))
 
+#_(defn eng-postfix-fmt-num [n]
+  (let [sn (str n)
+        post-fix (case sn
+                   ("11" "12" "13") "th"
+                   (condp (fn [num sn]
+                            (str/ends-with? sn num))
+                          sn
+                     "1" "st"
+                     "2" "nd"
+                     "3" "rd"
+                     "th"))]
+    (str sn post-fix)))
 
+#_(comment
+  (map #(eng-postfix-fmt-num %) (range 1 35))
+  )
