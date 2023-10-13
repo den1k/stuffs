@@ -61,15 +61,14 @@ given function `f`.
                             (let [port-forwarding
                                   (p/process
                                     {:out :inherit}
-                                    "ssh" ssh-remote "-L" (str local-port ":172.17.0.2:" ssh-remote-port))]
+                                    "ssh" ssh-remote "-fN" "-L" (str local-port ":172.17.0.2:" ssh-remote-port))]
                               ; (p/alive? pf)
                               (defn remote-eval! [x]
                                 (let [d (m/dfv)]
                                   (! [d x])
                                   (m/? d)))
-                              #(do
-                                 (p/destroy port-forwarding)
-                                 (def remote-eval! nil)))))
+                              #(do (p/destroy port-forwarding)
+                                   (def remote-eval! nil)))))
                         (process-tuples (fn [d x] (d x))
                                         [identity
                                          (partial send-forms
