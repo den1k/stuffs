@@ -8,7 +8,7 @@
 (defn request->json [opts]
   (let [{:as resp :keys [status body]} @(http/request opts)]
     (case status
-      200 (some-> body su/read-json-keywordized)
+      (200 201) (some-> body su/read-json-keywordized)
       (throw (ex-info "Request failed" resp)))))
 
 (defonce request->json-mem-ttl (su/memoize-ttl request->json (* 4 su/hour-ms)))

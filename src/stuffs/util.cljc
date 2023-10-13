@@ -8,6 +8,7 @@
             [hickory.core :as hic]
             [stuffs.js-interop :as j]
             [taoensso.encore :as enc]
+            [stuffs.env :as env]
             [lambdaisland.regal :as regal]
             [net.cgrand.xforms :as x :include-macros true]
             [net.cgrand.xforms.rfs :as rf :include-macros true]
@@ -449,6 +450,14 @@
              not-empty
              (mapv #(cond-> % (not (vector? %)) vector)))))
 
+(defmacro dtap
+  "Like tap> but only tabs in dev and returns value instead of true"
+  [x]
+  `(do
+     ~(when env/dev?
+        `(tap> ~x))
+     ~x))
+
 (defn identity-thunk [thunk]
   (thunk))
 
@@ -785,17 +794,17 @@
       (throw (ex-info (str ~message " " (pr-str '~expr)) {})))))
 
 #_(defn eng-postfix-fmt-num [n]
-  (let [sn (str n)
-        post-fix (case sn
-                   ("11" "12" "13") "th"
-                   (condp (fn [num sn]
-                            (str/ends-with? sn num))
-                          sn
-                     "1" "st"
-                     "2" "nd"
-                     "3" "rd"
-                     "th"))]
-    (str sn post-fix)))
+    (let [sn       (str n)
+          post-fix (case sn
+                     ("11" "12" "13") "th"
+                     (condp (fn [num sn]
+                              (str/ends-with? sn num))
+                            sn
+                       "1" "st"
+                       "2" "nd"
+                       "3" "rd"
+                       "th"))]
+      (str sn post-fix)))
 
 #_(comment
   (map #(eng-postfix-fmt-num %) (range 1 35))

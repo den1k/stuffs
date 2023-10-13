@@ -3,7 +3,6 @@
     #?@(:clj [[clojure.java.io :as io]
               [clojure.edn :as edn]
               [clojure.string :as str]])
-    [stuffs.util :as su]
     [clojure.core :as clj])
   #?(:cljs (:require-macros [stuffs.env :refer [get]]))
   (:refer-clojure :exclude [get]))
@@ -81,6 +80,6 @@
 
 (def dev-env (some-> (get :env) keyword))
 
-(def dev? (su/keyword-identical? dev-env :dev))
+(def dev? (= dev-env :dev))
 
-(def prod? (su/keyword-identical? dev-env :prod))
+(def prod? (= dev-env :prod))
