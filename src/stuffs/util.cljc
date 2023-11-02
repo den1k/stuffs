@@ -807,5 +807,23 @@
       (str sn post-fix)))
 
 #_(comment
-  (map #(eng-postfix-fmt-num %) (range 1 35))
-  )
+    (map #(eng-postfix-fmt-num %) (range 1 35))
+    )
+
+(defmacro when-f
+  "Like when for function composition.
+   Instead of returning nil a falsy test returns identity.
+  ((when-f false inc) 1)
+  (when-f env/dev? #(doto % tap>))"
+  [test body-f]
+  (list 'if test body-f identity))
+
+(defn pred-f
+  "((pred-f number? str) 123)
+=> \"123\"
+((pred-f number? str) :not-this)
+=> :not-this"
+  [pred f]
+  (fn when-pred-f [x]
+    (cond-> x
+      (pred x) f)))
