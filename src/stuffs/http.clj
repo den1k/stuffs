@@ -5,6 +5,13 @@
 ;(defonce get-mem-ttl (su/memoize-ttl (comp deref http/get) (* 4 su/hour-ms)))
 ;(defonce request-mem-ttl (su/memoize-ttl (comp deref http/request) (* 4 su/hour-ms)))
 
+(do
+  ;; see https://github.com/http-kit/http-kit#enabling-client-sni-support-disabled-by-default
+  ;; Needs Java >= 8, http-kit >= 2.4.0-alpha6
+  (require '[org.httpkit.sni-client :as sni-client])
+  ;; Change default client for your whole application:
+  (alter-var-root #'org.httpkit.client/*default-client* (fn [_] sni-client/default-client)))
+
 (defn request->json [opts]
   (let [{:as resp :keys [status body]} @(http/request opts)]
     (case status
