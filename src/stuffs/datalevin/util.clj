@@ -316,7 +316,7 @@
 (defn existing-entity [db eid]
   (when (and eid
              (ddb/entid db eid)
-             (not-empty (d/datoms db :eavt eid)))
+             (not-empty (d/datoms db :eav eid)))
     (d/entity db eid)))
 
 (defn entity
