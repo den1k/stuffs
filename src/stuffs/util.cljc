@@ -706,7 +706,7 @@
                           (with-out-str (clojure.pprint/pprint x))
                           (pr-str x)))
             selection (java.awt.datatransfer.StringSelection. text)]
-        (.setContents (clipboard) selection selection))
+        (.setContents (clipboard) selection nil))
       x)))
 
 (defn simple-snake->camel-case [s]
@@ -783,7 +783,7 @@
   ([expr message]
    `(or
       ~expr
-      (throw (ex-info (str ~message " " (pr-str '~expr)) {})))))
+      (throw (ex-info (str "Could not assert: " (pr-str '~expr) "\n\n" ~message ) {})))))
 
 (defmacro ascertain-some
   ([expr]

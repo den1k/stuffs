@@ -19,12 +19,12 @@
   ([clipboard-text-or-fn on-copied]
    #?(:cljs
       (p/then
-        (if (fn? clipboard-text-or-fn)
-          (clipboard-text-or-fn)
-          clipboard-text-or-fn)
-        (fn [txt]
-          (p/then (j/call-in js/navigator [:clipboard :writeText] txt)
-                  on-copied))))))
+       (if (fn? clipboard-text-or-fn)
+         (clipboard-text-or-fn)
+         clipboard-text-or-fn)
+       (fn [txt]
+         (p/then (j/call-in js/navigator [:clipboard :writeText] txt)
+                 on-copied))))))
 
 (defn read-clipboard-promise []
   #?(:cljs
@@ -42,7 +42,7 @@
   ([]
    #?(:cljs
       (p/promise [resolve reject]
-        (location resolve))))
+                 (location resolve))))
   ([cb]
    #?(:cljs
       (when-let [gl (j/get js/navigator :geolocation)]
@@ -51,10 +51,10 @@
                   (let [{:keys [accuracy altitude latitude longitude]}
                         (j/lookup (j/get pos :coords))]
                     (cb
-                      {:accuracy  accuracy
-                       :altitude  altitude
-                       :latitude  latitude
-                       :longitude longitude}))))))))
+                     {:accuracy  accuracy
+                      :altitude  altitude
+                      :latitude  latitude
+                      :longitude longitude}))))))))
 
 (defn bounding-rect [node]
   #?(:cljs
@@ -76,8 +76,8 @@
   ([root-node]
    #?(:cljs
       (.createTreeWalker
-        js/document
-        root-node js/NodeFilter.SHOW_TEXT)))
+       js/document
+       root-node js/NodeFilter.SHOW_TEXT)))
   ([root-node current-node]
    #?(:cljs
       (j/assoc! (text-walker root-node) :currentNode current-node))))
@@ -85,11 +85,11 @@
 (defn clone-walker [walker]
   #?(:cljs
      (-> (j/call
-           js/document
-           :createTreeWalker
-           (j/get walker :root)
-           (j/get walker :whatToShow)
-           (j/get walker :filter))
+          js/document
+          :createTreeWalker
+          (j/get walker :root)
+          (j/get walker :whatToShow)
+          (j/get walker :filter))
          (j/assoc! :currentNode (j/get walker :currentNode)))))
 
 (defn walker-all-nodes [walker]
@@ -100,9 +100,9 @@
 (defn walker-take-while [walker pred]
   #?(:cljs
      (sequence
-       (comp (take-while some?)
-             (take-while pred))
-       (repeatedly #(j/call walker :nextNode)))))
+      (comp (take-while some?)
+            (take-while pred))
+      (repeatedly #(j/call walker :nextNode)))))
 
 (defn ensure-element-node
   "Ensures HTML element node since some lookup functions are not available elsewhere.
@@ -231,8 +231,8 @@
   (let [walker (text-walker parent-node anchor-node)]
     (transduce (take-while some?)
                (completing
-                 (fn sum-length [acc input]
-                   (+ acc (.-length input))))
+                (fn sum-length [acc input]
+                  (+ acc (.-length input))))
                0
                (repeatedly #(.previousNode walker)))))
 
@@ -240,14 +240,14 @@
   (let [walker (text-walker parent-node)]
     (transduce (take-while some?)
                (completing
-                 (fn sum-length [acc input]
-                   (let [len   (.-length input)
-                         total (+ acc len)]
-                     (if (>= total idx)
-                       (reduced {:node input :offset (- len (- total idx))})
-                       total)))
-                 (fn [ret]
-                   (when (map? ret) ret)))
+                (fn sum-length [acc input]
+                  (let [len   (.-length input)
+                        total (+ acc len)]
+                    (if (>= total idx)
+                      (reduced {:node input :offset (- len (- total idx))})
+                      total)))
+                (fn [ret]
+                  (when (map? ret) ret)))
                0
                (repeatedly #(.nextNode walker)))))
 
@@ -359,7 +359,7 @@
      "Event handler macro. Makes e (event) and target available in the body."
      ([& body]
       (macros/case
-        :cljs
+       :cljs
         `(fn e># [~'e]
            (let [~'target (.-target ~'e)
                  ~'value (.-value ~'target)
@@ -421,23 +421,23 @@
                                  (fn? v) ""                 ; ignore for now
                                  (keyword? v) (name v)
                                  (map? v) (transduce
-                                            (map (fn [[k v]]
-                                                   (str (name k) ": " v ";")))
-                                            str
-                                            v)
+                                           (map (fn [[k v]]
+                                                  (str (name k) ": " v ";")))
+                                           str
+                                           v)
                                  (vector? v) (transduce (comp
-                                                          (keep identity)
-                                                          (map name)) (completing #(str % " " %2))
+                                                         (keep identity)
+                                                         (map name)) (completing #(str % " " %2))
                                                         v)))))
               (when (not-empty children)
                 (j/apply el :append (transduce (keep #(hiccup->dom
-                                                        (cond-> ctx
-                                                          svg? (assoc :upstream-svg? svg?))
-                                                        %))
+                                                       (cond-> ctx
+                                                         svg? (assoc :upstream-svg? svg?))
+                                                       %))
                                                (completing
-                                                 (fn [out i]
-                                                   (j/call out :push i)
-                                                   out))
+                                                (fn [out i]
+                                                  (j/call out :push i)
+                                                  out))
                                                #js []
                                                children)))
               #_(when-let [{:keys [data-id]} attrs]
