@@ -318,6 +318,7 @@
                  v
                  (let [ret (apply f args)]
                    (swap! mem assoc args ret)
+                   ;; FIXME this will not cancel a dissoc on a next invocation
                    (js/setTimeout
                      #(swap! mem dissoc args)
                      interval)
@@ -575,6 +576,10 @@
 (defn floor [num]
   (some-> num (Math/floor) int))
 
+(defn pp [& xs]
+  (when (not-empty xs)
+    (run! pprint xs)))
+
 (defn pretty-string [x]
   (when x
     (str/trim (with-out-str (pprint x)))))
@@ -783,7 +788,7 @@
   ([expr message]
    `(or
       ~expr
-      (throw (ex-info (str "Could not assert: " (pr-str '~expr) "\n\n" ~message ) {})))))
+      (throw (ex-info (str "Could not assert: " (pr-str '~expr) "\n\n" ~message) {})))))
 
 (defmacro ascertain-some
   ([expr]

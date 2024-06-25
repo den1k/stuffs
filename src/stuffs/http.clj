@@ -1,6 +1,7 @@
 (ns stuffs.http
   (:require [stuffs.util :as su]
-            [org.httpkit.client :as http]))
+            [org.httpkit.client :as http]
+            [clojure.core.memoize :as mem]))
 
 ;(defonce get-mem-ttl (su/memoize-ttl (comp deref http/get) (* 4 su/hour-ms)))
 ;(defonce request-mem-ttl (su/memoize-ttl (comp deref http/request) (* 4 su/hour-ms)))
@@ -19,6 +20,23 @@
       (throw (ex-info "Request failed" resp)))))
 
 (defonce request->json-mem-ttl (su/memoize-ttl request->json (* 4 su/hour-ms)))
+
+(defn clear-request-ttl-cache! []
+  (mem/memo-clear! request->json-mem-ttl)
+  :cache-cleared)
+
+(def ^:dynamic *http-request->json-mem-ttl* request->json-mem-ttl)
+
+(defn without-mem* [thunk]
+  (binding [*http-request->json-mem-ttl* request->json]
+    (thunk)))
+
+(defmacro without-mem [& body]
+  `(without-mem* (fn [] ~@body)))
+
+(comment
+  (mem/snapshot request->json-mem-ttl)
+  (clear-request-ttl-cache!))
 
 (def ^:dynamic *http-request->json* request->json)
 
