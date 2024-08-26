@@ -25,10 +25,10 @@
   (mem/memo-clear! request->json-mem-ttl)
   :cache-cleared)
 
-(def ^:dynamic *http-request->json-mem-ttl* request->json-mem-ttl)
+(def ^:dynamic *request->json-mem-ttl* request->json-mem-ttl)
 
 (defn without-mem* [thunk]
-  (binding [*http-request->json-mem-ttl* request->json]
+  (binding [*request->json-mem-ttl* request->json]
     (thunk)))
 
 (defmacro without-mem [& body]

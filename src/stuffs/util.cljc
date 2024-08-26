@@ -3,7 +3,7 @@
             [com.rpl.specter :as sp]
             [nano-id.core :as nano-id]
             [clojure.walk :as walk]
-            [clojure.pprint :refer [pprint]]
+            [clojure.pprint :refer [pprint print-table]]
             [clojure.set :as set]
             [hickory.core :as hic]
             [stuffs.js-interop :as j]
@@ -92,9 +92,6 @@
 (defn ffilter [pred coll]
   (some #(when (pred %) %) coll))
 
-(def update-existing md/update-existing)
-(def assoc-some md/assoc-some)
-
 (defn fn-map
   "(fn-map {:odd? odd? :even? even?} 1)
    => {:odd? true, :even? false}"
@@ -144,6 +141,15 @@
   ([xfm coll]
    (transduce (xf-map-reduce xfm) rf/last coll)))
 
+(defn xf->step
+  "Single input transducer execution, e.g.
+  (xf->step (map inc) 1) => 2"
+  ([xform]
+   (fn [x]
+     (xf->step xform x)))
+  ([xform x]
+   ((xform (fn [_ result] result)) nil x)))
+
 (defn nfurcate
   "(nfurcate {:odd? odd?
            :even? even?} (range 10))
@@ -181,6 +187,10 @@
 
 (defn remove-nil-vals [m]
   (md/remove-vals nil? m))
+
+(def dissoc-in md/dissoc-in)
+(def assoc-some md/assoc-some)
+(def update-existing md/update-existing)
 
 (defn rcomp
   "Like comp but composes in reverse, so:
@@ -254,7 +264,7 @@
 (defmacro space-join
   "Like (apply core.string/join \" \" coll) but runs at compile time using str."
   [& xs]
-  (conj xs " " `sep-join))
+  `(sep-join " " ~@(filter identity xs)))
 
 (defn numbered-join
   "((numbered-join {:num-right-s \".\" :sep \"\\n\"}) [\"foo\" \"bar\"])\n=> \"1. foo\\n2. bar\""
@@ -328,6 +338,9 @@
 
 (def minute-ms (* 1000 60))
 (def hour-ms (* 60 minute-ms))
+
+(defn memoize-ttl-4h [f]
+  (memoize-ttl f (* 4 hour-ms)))
 
 (defn dedupe-f [f]
   "Like clojure.core/memoize but only caches the last invocation.
@@ -580,6 +593,8 @@
   (when (not-empty xs)
     (run! pprint xs)))
 
+(def ppt print-table)
+
 (defn pretty-string [x]
   (when x
     (str/trim (with-out-str (pprint x)))))
@@ -716,6 +731,9 @@
 
 (defn simple-snake->camel-case [s]
   (str/replace s #"_" "-"))
+
+(defn simple->camel-case [s]
+  (str/replace (str/lower-case s) #"\s+" "-"))
 
 (defn space->dash [s]
   (-> s
